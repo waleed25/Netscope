@@ -599,39 +599,29 @@ export function ExpertTools() {
   };
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-52 shrink-0 border-r border-border bg-surface flex flex-col py-2 gap-0.5 overflow-y-auto">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Horizontal mode tabs */}
+      <div className="flex shrink-0 border-b border-border bg-surface px-2 gap-0 pt-1">
         {MODES.map((m) => (
           <button
             key={m.id}
             onClick={() => selectMode(m)}
-            className={`text-left px-3 py-3 text-xs transition-colors border-l-2 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t transition-colors border-b-2 whitespace-nowrap ${
               selectedMode.id === m.id
-                ? "bg-accent-emphasis/20 text-accent border-accent"
-                : "text-muted hover:text-foreground hover:bg-surface-hover border-transparent"
+                ? "border-accent text-accent bg-surface-hover"
+                : "border-transparent text-muted hover:text-foreground hover:bg-surface-hover"
             }`}
           >
-            <div className="flex items-center gap-2 font-semibold mb-0.5">
-              <span className={selectedMode.id === m.id ? "text-accent" : "text-muted"}>
-                {m.icon}
-              </span>
-              {m.label}
-            </div>
-            <div className="text-[10px] opacity-70 leading-tight pl-6">{m.description}</div>
+            <span className="w-3.5 h-3.5">{m.icon}</span>
+            {m.label}
           </button>
         ))}
-      </aside>
+      </div>
 
       {/* Main panel */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Toolbar */}
-        <div className="shrink-0 border-b border-border bg-surface px-4 py-3 flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-accent">
-            {selectedMode.icon}
-            <span className="font-semibold text-sm">{selectedMode.label}</span>
-          </div>
-
+        <div className="shrink-0 border-b border-border bg-surface px-4 py-2 flex items-center gap-3 flex-wrap">
           <span className="text-muted text-xs">{totalPackets} packets</span>
 
           <label className="flex items-center gap-1.5 text-xs text-muted cursor-pointer select-none ml-auto">

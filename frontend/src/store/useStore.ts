@@ -228,7 +228,7 @@ const getInitialTheme = (): Theme => {
     const stored = localStorage.getItem("netscope-theme");
     if (stored === "light" || stored === "dark") return stored;
   } catch {}
-  return "light"; // default
+  return "dark"; // default
 };
 
 export const useStore = create<AppState>((set, get) => ({

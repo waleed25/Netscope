@@ -32,8 +32,14 @@ import {
   Activity,
   Wifi,
   Info,
+  Zap,
+  ArrowDown,
+  ArrowUp,
+  Hash,
 } from "lucide-react";
 import { fetchSystemStatus, SystemStatus, ComponentStatus } from "../lib/api";
+import { useStore } from "../store/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // ---------------------------------------------------------------------------
 // Component metadata — display name + icon for each probe key
@@ -150,17 +156,61 @@ function ComponentRow({ id, status }: ComponentRowProps) {
   );
 }
 
+const REFRESH_INTERVAL_MS = 15_000;
+
+// ---------------------------------------------------------------------------
+// Health cards — 3 key services shown prominently
+// ---------------------------------------------------------------------------
+
+const KEY_SERVICES: { id: string; label: string; Icon: IconComponent }[] = [
+  { id: "backend_api",    label: "Backend API",    Icon: Server   },
+  { id: "llm_backend",    label: "LLM Backend",    Icon: Brain    },
+  { id: "packet_capture", label: "Packet Capture", Icon: Activity },
+];
+
+interface HealthCardProps {
+  label: string;
+  Icon: IconComponent;
+  status: ComponentStatus | undefined;
+  loading: boolean;
+}
+
+function HealthCard({ label, Icon, status, loading }: HealthCardProps) {
+  const ok = status?.ok ?? false;
+  return (
+    <div className={`flex-1 flex items-start gap-3 px-4 py-3 rounded-lg border ${ok ? "border-border bg-surface" : "border-danger/30 bg-down-bg"}`}>
+      <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${loading ? "bg-border-subtle animate-pulse" : ok ? "bg-success" : "bg-danger"}`} />
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <Icon className={`w-3.5 h-3.5 shrink-0 ${ok ? "text-accent" : "text-danger"}`} />
+          <span className="text-foreground text-xs font-medium">{label}</span>
+        </div>
+        {status?.detail && (
+          <div className={`text-xs mt-0.5 font-mono truncate ${ok ? "text-muted" : "text-danger"}`} title={status.detail}>
+            {status.detail}
+          </div>
+        )}
+        {!status && !loading && (
+          <div className="text-xs mt-0.5 text-muted-dim">Not reported</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main panel
 // ---------------------------------------------------------------------------
-
-const REFRESH_INTERVAL_MS = 15_000;
 
 export function StatusPanel() {
   const [data, setData]       = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  const { tokenUsage } = useStore(
+    useShallow((s) => ({ tokenUsage: s.tokenUsage }))
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -221,6 +271,55 @@ export function StatusPanel() {
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
+      </div>
+
+      {/* ── Health cards ────────────────────────────────────────────────────── */}
+      <div className="flex gap-2 mb-4">
+        {KEY_SERVICES.map(({ id, label, Icon }) => (
+          <HealthCard
+            key={id}
+            label={label}
+            Icon={Icon}
+            status={data?.components?.[id]}
+            loading={loading && !data}
+          />
+        ))}
+      </div>
+
+      {/* ── Metrics bar ─────────────────────────────────────────────────────── */}
+      <div className="flex gap-2 mb-4">
+        {[
+          {
+            icon: <Zap className="w-3.5 h-3.5" />,
+            label: "Latency",
+            value: data?.components?.llm_backend?.latency_ms != null
+              ? `${data.components.llm_backend.latency_ms}ms`
+              : "—",
+          },
+          {
+            icon: <ArrowDown className="w-3.5 h-3.5" />,
+            label: "Tokens In",
+            value: tokenUsage.prompt_tokens.toLocaleString(),
+          },
+          {
+            icon: <ArrowUp className="w-3.5 h-3.5" />,
+            label: "Tokens Out",
+            value: tokenUsage.completion_tokens.toLocaleString(),
+          },
+          {
+            icon: <Hash className="w-3.5 h-3.5" />,
+            label: "Requests",
+            value: tokenUsage.requests.toLocaleString(),
+          },
+        ].map(({ icon, label, value }) => (
+          <div key={label} className="flex-1 flex flex-col gap-1 px-3 py-2.5 rounded-lg border border-border bg-surface">
+            <div className="flex items-center gap-1.5 text-muted-dim">
+              {icon}
+              <span className="text-xs uppercase tracking-wide font-medium" style={{ letterSpacing: "0.06em" }}>{label}</span>
+            </div>
+            <span className="text-foreground text-base font-semibold font-mono leading-none">{value}</span>
+          </div>
+        ))}
       </div>
 
       {/* ── Version banner ──────────────────────────────────────────────────── */}

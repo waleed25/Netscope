@@ -58,45 +58,45 @@
 
   /* ── Dark theme ───────────────────────────────────────────────────────── */
   .dark {
-    --color-background:          30 30 30;
-    --color-surface:             40 40 43;
-    --color-surface-hover:       58 58 60;
-    --color-surface-active:      56 56 58;
-    --color-border:              56 56 58;
-    --color-border-subtle:       44 44 46;
-    --color-foreground:          255 255 255;
-    --color-muted:               152 152 157;
-    --color-muted-dim:           99 99 102;
-    --color-accent:              10 132 255;
-    --color-success:             48 209 88;
-    --color-warning:             255 159 10;
-    --color-danger:              255 69 58;
-    --color-purple:              191 90 242;
-    --color-accent-muted:        10 132 255;
-    --color-severe:              255 69 58;
-    --color-pink:                255 55 95;
-    --color-accent-emphasis:     10 132 255;
-    --color-success-emphasis:    48 209 88;
-    --color-danger-emphasis:     255 69 58;
-    --color-purple-emphasis:     191 90 242;
-    --color-tool:                255 159 10;
-    --color-attention:           255 214 10;
-    --color-success-subtle:      15 45 27;
-    --color-danger-subtle:       45 15 15;
-    --color-warning-subtle:      45 27 0;
-    --color-accent-subtle:       13 65 157;
-    --color-purple-subtle:       45 27 105;
-    --color-muted-extra:         110 118 129;
-    --color-success-emphasis-hover: 46 160 67;
-    --color-accent-emphasis-hover:  56 139 253;
-    --color-danger-emphasis-hover:  248 81 73;
-    --color-purple-emphasis-hover:  137 87 229;
+    --color-background:          10 10 11;
+    --color-surface:             13 17 23;
+    --color-surface-hover:       22 27 34;
+    --color-surface-active:      28 33 40;
+    --color-border:              33 38 45;
+    --color-border-subtle:       48 54 61;
+    --color-foreground:          226 232 240;
+    --color-muted:               139 148 158;
+    --color-muted-dim:           74 85 104;
+    --color-accent:              88 166 255;
+    --color-success:             63 185 80;
+    --color-warning:             210 153 34;
+    --color-danger:              248 81 73;
+    --color-purple:              163 113 247;
+    --color-accent-muted:        31 111 235;
+    --color-severe:              248 81 73;
+    --color-pink:                240 134 175;
+    --color-accent-emphasis:     88 166 255;
+    --color-success-emphasis:    63 185 80;
+    --color-danger-emphasis:     248 81 73;
+    --color-purple-emphasis:     163 113 247;
+    --color-tool:                210 153 34;
+    --color-attention:           210 153 34;
+    --color-success-subtle:      13 43 26;
+    --color-danger-subtle:       43 14 14;
+    --color-warning-subtle:      43 31 7;
+    --color-accent-subtle:       13 31 60;
+    --color-purple-subtle:       27 16 48;
+    --color-muted-extra:         74 85 104;
+    --color-success-emphasis-hover: 48 160 67;
+    --color-accent-emphasis-hover:  121 184 255;
+    --color-danger-emphasis-hover:  255 123 114;
+    --color-purple-emphasis-hover:  210 168 255;
     /* Status panel special bg */
-    --color-ok-bg:               13 32 16;
-    --color-down-bg:             42 10 10;
+    --color-ok-bg:               13 43 26;
+    --color-down-bg:             43 14 14;
     /* Protocol colors */
     --color-protocol-http:       88 166 255;
-    --color-protocol-tls:        121 192 255;
+    --color-protocol-tls:        121 184 255;
     --color-protocol-dns:        188 140 255;
     --color-protocol-tcp:        63 185 80;
     --color-protocol-udp:        210 153 34;
@@ -105,15 +105,15 @@
     --color-protocol-other:      139 148 158;
 
     /* ── Wireshark-style packet row colors (dark theme only) ─────────────── */
-    .row-tcp   { background-color: #1a2535; color: #c8d8f0; }
-    .row-tls   { background-color: #1e1835; color: #d0c8f0; }
-    .row-dns   { background-color: #0f2018; color: #c0e8d0; }
-    .row-http  { background-color: #162030; color: #b8d8e8; }
-    .row-udp   { background-color: #1a2035; color: #c8c8f0; }
-    .row-arp   { background-color: #1a1a0f; color: #e8e8b8; }
-    .row-icmp  { background-color: #1a2020; color: #b8e0e0; }
-    .row-error { background-color: #2d1515; color: #f4b8b8; }
-    .row-warn  { background-color: #2a1e10; color: #f4d8b8; }
+    .row-tcp   { background-color: #131e2d; color: #c8d8f0; }
+    .row-tls   { background-color: #161232; color: #d0c8f0; }
+    .row-dns   { background-color: #0b1a12; color: #c0e8d0; }
+    .row-http  { background-color: #101a28; color: #b8d8e8; }
+    .row-udp   { background-color: #131a2d; color: #c8c8f0; }
+    .row-arp   { background-color: #14140a; color: #e8e8b8; }
+    .row-icmp  { background-color: #131a1a; color: #b8e0e0; }
+    .row-error { background-color: #270f0f; color: #f4b8b8; }
+    .row-warn  { background-color: #22180a; color: #f4d8b8; }
   }
 
   /* ── Third-party brand colors (theme-invariant) ───────────────────────── */
@@ -123,7 +123,7 @@
   }
 
   body {
-    background-color: rgb(var(--color-surface));
+    background-color: rgb(var(--color-background));
     color: rgb(var(--color-foreground));
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 13px;
@@ -196,5 +196,57 @@
     --tw-prose-code: rgb(var(--color-foreground));
     --tw-prose-pre-bg: rgb(var(--color-surface));
     --tw-prose-pre-code: rgb(var(--color-foreground));
+  }
+
+  /* Sidebar tooltip */
+  .sidebar-tooltip {
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgb(var(--color-surface-active));
+    border: 1px solid rgb(var(--color-border));
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgb(var(--color-foreground));
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+    z-index: 100;
+  }
+  .sidebar-item:hover .sidebar-tooltip {
+    opacity: 1;
+    transition-delay: 400ms;
+  }
+
+  /* AI panel transition */
+  .ai-panel-enter {
+    width: 0;
+    overflow: hidden;
+    transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ai-panel-open {
+    width: 320px;
+  }
+
+  /* Label meta -- field labels */
+  .label-meta {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-muted-dim));
+  }
+
+  /* Capture status pulsing dot */
+  @keyframes capture-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .capture-pulse {
+    animation: capture-pulse 1s ease-in-out infinite;
   }
 }

@@ -1,25 +1,30 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import type { ReactNode } from "react";
 import { useStore } from "../store/useStore";
 import { useShallow } from "zustand/react/shallow";
 import { useFeature } from "../features";
 import { RightPanel } from "./RightPanel";
 import { PacketsTab } from "./PacketsTab";
-import { FilterBar } from "./FilterBar";
-import { LLMConfig } from "./LLMConfig";
-import { TokenCounter } from "./TokenCounter";
 import { NetworkTools } from "./NetworkTools";
-import { ContextPie } from "./ContextPie";
-import { UpdateChecker } from "./UpdateChecker";
-import {
-  Activity,
-  Terminal, Shield, Cpu, BookOpen, HeartPulse, Network,
-  PanelLeftClose, PanelLeftOpen, Radio,
-  Sun, Moon, GitFork, Clock, Wand2, FileText
-} from "lucide-react";
 import { ExpertTools } from "./ExpertTools";
 import { StatusPanel } from "./StatusPanel";
 import { ToastContainer } from "./Toast";
+import {
+  Activity,
+  Terminal,
+  Shield,
+  Cpu,
+  BookOpen,
+  HeartPulse,
+  Network,
+  Radio,
+  GitFork,
+  Clock,
+  MessageSquare,
+  Sun,
+  Moon,
+  X,
+} from "lucide-react";
 
 // Optional module panels — lazy-loaded so they don't bloat the initial bundle
 const TrafficMap    = lazy(() => import("./TrafficMap").then(m => ({ default: m.TrafficMap })));
@@ -30,61 +35,30 @@ const SchedulerPanel = lazy(() => import("./SchedulerPanel").then(m => ({ defaul
 const WizardPanel    = lazy(() => import("./WizardPanel"));
 const ReportViewer   = lazy(() => import("./ReportViewer"));
 
-const LazyFallback = () => <div className="p-4 text-muted">Loading...</div>;
+const LazyFallback = () => <div className="p-4 text-muted text-xs">Loading...</div>;
 
 interface DashboardProps {
   onUpdateFailed?: (reason: string) => void;
 }
 
-type TabId = "packets" | "tools" | "expert" | "modbus" | "rag" | "status" | "channels" | "trafficmap" | "scheduler" | "wizards" | "reports";
+type TabId =
+  | "packets"
+  | "tools"
+  | "expert"
+  | "modbus"
+  | "rag"
+  | "status"
+  | "channels"
+  | "trafficmap"
+  | "scheduler"
+  | "wizards"
+  | "reports";
 
-interface TabDef {
+interface NavItem {
   id: TabId;
   label: string;
   icon: typeof Activity;
 }
-
-/** Build nav sections, filtering out tabs whose feature module is disabled. */
-function useNavSections(): { heading: string; tabs: TabDef[] }[] {
-  const hasModbus    = useFeature('modbus');
-  const hasRAG       = useFeature('rag');
-  const hasTopology  = useFeature('topology');
-  const hasScheduler = useFeature('scheduler');
-  const hasExpert    = useFeature('expert-analysis');
-  const hasChannels  = useFeature('channels');
-
-  return [
-    {
-      heading: "Capture",
-      tabs: [
-        { id: "packets", label: "Packets", icon: Activity },
-      ],
-    },
-    {
-      heading: "Tools",
-      tabs: [
-        { id: "tools",      label: "Net Tools",   icon: Terminal },
-        ...(hasExpert   ? [{ id: "expert"     as TabId, label: "Analysis",    icon: Shield  }] : []),
-        ...(hasTopology ? [{ id: "trafficmap"  as TabId, label: "Traffic Map", icon: GitFork }] : []),
-        ...(hasModbus   ? [{ id: "modbus"      as TabId, label: "Modbus",      icon: Cpu     }] : []),
-      ],
-    },
-    {
-      heading: "System",
-      tabs: [
-        ...(hasRAG       ? [{ id: "rag"       as TabId, label: "Knowledge Base", icon: BookOpen   }] : []),
-        ...(hasChannels  ? [{ id: "channels"  as TabId, label: "Channels",       icon: Radio      }] : []),
-        { id: "status",   label: "Status",      icon: HeartPulse },
-        ...(hasScheduler ? [{ id: "scheduler" as TabId, label: "Scheduler",      icon: Clock      }] : []),
-        { id: "wizards",  label: "Wizards",     icon: Wand2      },
-        { id: "reports",  label: "Reports",     icon: FileText   },
-      ],
-    },
-  ];
-}
-
-/** Tabs that use capture controls (FilterBar is now inside PacketsTab for "packets") */
-const FILTER_TABS = new Set<TabId>(["expert"]);
 
 /**
  * Tab content — all panels stay mounted to preserve WebSocket connections and
@@ -104,88 +78,133 @@ function TabContent({ activeTab }: { activeTab: TabId }): ReactNode {
     });
   }, [activeTab]);
 
-  const show = (id: TabId) => ({ style: { display: activeTab === id ? undefined : "none" } as React.CSSProperties });
+  const show = (id: TabId) => ({
+    style: { display: activeTab === id ? undefined : "none" } as React.CSSProperties,
+  });
 
   return (
     <>
       {/* Core panels — always mounted */}
-      <div {...show("packets")}  className="h-full"><PacketsTab /></div>
-      <div {...show("tools")}    className="h-full"><NetworkTools /></div>
-      <div {...show("expert")}   className="h-full"><ExpertTools /></div>
-      <div {...show("status")}   className="h-full"><StatusPanel /></div>
+      <div {...show("packets")} className="h-full"><PacketsTab /></div>
+      <div {...show("tools")}   className="h-full"><NetworkTools /></div>
+      <div {...show("expert")}  className="h-full"><ExpertTools /></div>
+      <div {...show("status")}  className="h-full"><StatusPanel /></div>
 
       {/* Lazy panels — mounted on first visit, hidden thereafter */}
       <div {...show("trafficmap")} className="h-full">
-        {visited.has("trafficmap") && <Suspense fallback={<LazyFallback />}><TrafficMap /></Suspense>}
+        {visited.has("trafficmap") && (
+          <Suspense fallback={<LazyFallback />}><TrafficMap /></Suspense>
+        )}
       </div>
       <div {...show("modbus")} className="h-full">
-        {visited.has("modbus") && <Suspense fallback={<LazyFallback />}><ModbusPanel /></Suspense>}
+        {visited.has("modbus") && (
+          <Suspense fallback={<LazyFallback />}><ModbusPanel /></Suspense>
+        )}
       </div>
       <div {...show("rag")} className="h-full">
-        {visited.has("rag") && <Suspense fallback={<LazyFallback />}><RAGPanel /></Suspense>}
+        {visited.has("rag") && (
+          <Suspense fallback={<LazyFallback />}><RAGPanel /></Suspense>
+        )}
       </div>
       <div {...show("channels")} className="h-full">
-        {visited.has("channels") && <Suspense fallback={<LazyFallback />}><ChannelsPanel /></Suspense>}
+        {visited.has("channels") && (
+          <Suspense fallback={<LazyFallback />}><ChannelsPanel /></Suspense>
+        )}
       </div>
       <div {...show("scheduler")} className="h-full">
-        {visited.has("scheduler") && <Suspense fallback={<LazyFallback />}><SchedulerPanel /></Suspense>}
+        {visited.has("scheduler") && (
+          <Suspense fallback={<LazyFallback />}><SchedulerPanel /></Suspense>
+        )}
       </div>
       <div {...show("wizards")} className="h-full">
-        {visited.has("wizards") && <Suspense fallback={<LazyFallback />}><WizardPanel /></Suspense>}
+        {visited.has("wizards") && (
+          <Suspense fallback={<LazyFallback />}><WizardPanel /></Suspense>
+        )}
       </div>
       <div {...show("reports")} className="h-full">
-        {visited.has("reports") && <Suspense fallback={<LazyFallback />}><ReportViewer /></Suspense>}
+        {visited.has("reports") && (
+          <Suspense fallback={<LazyFallback />}><ReportViewer /></Suspense>
+        )}
       </div>
     </>
   );
 }
 
-export function Dashboard({ onUpdateFailed }: DashboardProps) {
+interface SidebarItemProps {
+  id: TabId;
+  label: string;
+  icon: typeof Activity;
+  active: boolean;
+  onClick: () => void;
+}
+
+/** 48px icon button with CSS-only tooltip that appears after 400ms hover delay. */
+function SidebarItem({ label, icon: Icon, active, onClick }: SidebarItemProps) {
+  return (
+    <div className="relative sidebar-item">
+      <button
+        onClick={onClick}
+        aria-label={label}
+        role="tab"
+        aria-selected={active}
+        className={`flex items-center justify-center w-full h-8 mx-auto my-0.5 rounded-md transition-colors ${
+          active
+            ? "text-accent bg-accent-subtle"
+            : "text-muted-dim hover:text-foreground hover:bg-surface-hover"
+        }`}
+        style={
+          active
+            ? { boxShadow: "inset -2px 0 0 rgb(var(--color-accent))" }
+            : undefined
+        }
+      >
+        <Icon className="w-4 h-4" />
+      </button>
+      <span className="sidebar-tooltip">{label}</span>
+    </div>
+  );
+}
+
+export function Dashboard({ onUpdateFailed: _onUpdateFailed }: DashboardProps) {
   const { activeTab, setActiveTab, isCapturing, theme, toggleTheme } = useStore(
     useShallow((s) => ({
-      activeTab: s.activeTab,
+      activeTab:    s.activeTab,
       setActiveTab: s.setActiveTab,
-      isCapturing: s.isCapturing,
-      theme: s.theme,
-      toggleTheme: s.toggleTheme,
+      isCapturing:  s.isCapturing,
+      theme:        s.theme,
+      toggleTheme:  s.toggleTheme,
     }))
   );
-  const [collapsed, setCollapsed] = useState(false);
-  const navSections = useNavSections();
 
-  // Right panel resize
-  const [panelWidth, setPanelWidth] = useState(320);
-  const isResizing = useRef(false);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
-  const onResizeMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isResizing.current = true;
-    const startX = e.clientX;
-    const startWidth = panelWidth;
+  // Feature flags for conditional nav items
+  const hasModbus   = useFeature("modbus");
+  const hasRAG      = useFeature("rag");
+  const hasTopology = useFeature("topology");
+  const hasScheduler = useFeature("scheduler");
+  const hasExpert   = useFeature("expert-analysis");
+  const hasChannels = useFeature("channels");
 
-    const onMove = (ev: MouseEvent) => {
-      if (!isResizing.current) return;
-      const delta = startX - ev.clientX;
-      setPanelWidth(Math.min(640, Math.max(240, startWidth + delta)));
-    };
-    const onUp = () => {
-      isResizing.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
+  // Build flat nav items (no section headers)
+  const navItems: NavItem[] = [
+    { id: "packets",    label: "Capture",     icon: Activity   },
+    ...(hasExpert    ? [{ id: "expert"      as TabId, label: "Analyze",     icon: Shield    }] : []),
+    ...(hasTopology  ? [{ id: "trafficmap"  as TabId, label: "Traffic Map", icon: GitFork   }] : []),
+    { id: "tools",      label: "Tools",       icon: Terminal   },
+    ...(hasModbus    ? [{ id: "modbus"      as TabId, label: "Modbus",      icon: Cpu       }] : []),
+    ...(hasRAG       ? [{ id: "rag"         as TabId, label: "Knowledge",   icon: BookOpen  }] : []),
+    ...(hasChannels  ? [{ id: "channels"    as TabId, label: "Channels",    icon: Radio     }] : []),
+    { id: "status",     label: "Status",      icon: HeartPulse },
+    ...(hasScheduler ? [{ id: "scheduler"   as TabId, label: "Scheduler",   icon: Clock     }] : []),
+  ];
 
-  // Global keyboard shortcuts
+  // Ctrl+K toggles AI panel
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        // Focus chat box (Ctrl+K)
-        if (e.key.toLowerCase() === "k") {
-          e.preventDefault();
-          document.getElementById("chat-input")?.focus();
-        }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setAiPanelOpen((prev) => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -196,119 +215,115 @@ export function Dashboard({ onUpdateFailed }: DashboardProps) {
     <div className="flex h-screen overflow-hidden bg-background">
       <ToastContainer />
 
-      {/* ── Left Sidebar ── */}
-      <aside className={`flex flex-col shrink-0 bg-surface border-r border-border transition-[width] duration-200 ${collapsed ? "w-12" : "w-48"}`}>
+      {/* ── Sidebar: 48px fixed, no toggle ── */}
+      <aside className="flex flex-col shrink-0 w-12 bg-surface border-r border-border">
+
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-3 py-3 border-b border-border">
-          <Network className="w-5 h-5 text-accent shrink-0" />
-          {!collapsed && (
-            <div className="leading-tight min-w-0">
-              <div className="text-foreground font-semibold text-sm tracking-wide">NetScope</div>
-              <div className="text-muted text-[10px] tracking-widest uppercase">Network Analyzer</div>
-            </div>
-          )}
+        <div className="flex items-center justify-center h-10 border-b border-border shrink-0">
+          <Network className="w-5 h-5 text-accent" />
         </div>
 
         {/* Nav items */}
-        <nav role="tablist" aria-label="Main navigation" className="flex-1 overflow-y-auto py-1">
-          {navSections.map(({ heading, tabs }) => (
-            <div key={heading}>
-              {!collapsed && (
-                <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-muted uppercase tracking-wider">
-                  {heading}
-                </div>
-              )}
-              {collapsed && <div className="my-1 mx-2 border-t border-border" />}
-              {tabs.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  role="tab"
-                  aria-selected={activeTab === id}
-                  aria-label={label}
-                  onClick={() => setActiveTab(id)}
-                  title={collapsed ? label : undefined}
-                  className={`flex items-center gap-2.5 w-full text-sm transition-colors ${
-                    collapsed ? "justify-center px-0 py-2.5" : "px-4 py-2"
-                  } ${
-                    activeTab === id
-                      ? "bg-surface-hover text-accent border-r-2 border-accent"
-                      : "text-muted hover:bg-surface-hover hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  {!collapsed && label}
-                </button>
-              ))}
-            </div>
+        <nav
+          role="tablist"
+          aria-label="Main navigation"
+          className="flex-1 overflow-y-auto py-1 px-1"
+        >
+          {navItems.map(({ id, label, icon }) => (
+            <SidebarItem
+              key={id}
+              id={id}
+              label={label}
+              icon={icon}
+              active={activeTab === id}
+              onClick={() => setActiveTab(id)}
+            />
           ))}
         </nav>
 
-        {/* Live indicator */}
+        {/* Live capture indicator */}
         {isCapturing && (
-          <div className="shrink-0 px-3 py-2 border-t border-border flex items-center gap-1.5 text-success text-xs font-medium" role="status" aria-live="polite">
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            {!collapsed && "CAPTURING"}
+          <div
+            className="shrink-0 flex items-center justify-center py-1.5 border-t border-border"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              className="w-2 h-2 rounded-full bg-danger capture-pulse"
+              title="Capturing"
+            />
           </div>
         )}
+
+        {/* AI assistant toggle */}
+        <div className="relative sidebar-item shrink-0 border-t border-border">
+          <button
+            onClick={() => setAiPanelOpen((prev) => !prev)}
+            aria-label="Toggle AI assistant (Ctrl+K)"
+            aria-pressed={aiPanelOpen}
+            className={`flex items-center justify-center w-full py-2 transition-colors ${
+              aiPanelOpen
+                ? "text-accent"
+                : "text-muted-dim hover:text-foreground"
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
+          <span className="sidebar-tooltip">AI Assistant (Ctrl+K)</span>
+        </div>
 
         {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="shrink-0 flex items-center justify-center py-2 border-t border-border text-muted hover:text-foreground transition-colors"
-        >
-          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
-
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="shrink-0 flex items-center justify-center py-2 border-t border-border text-muted hover:text-foreground transition-colors"
-        >
-          {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-        </button>
+        <div className="relative sidebar-item shrink-0 border-t border-border">
+          <button
+            onClick={toggleTheme}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            className="flex items-center justify-center w-full py-2 text-muted-dim hover:text-foreground transition-colors"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </button>
+          <span className="sidebar-tooltip">
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </span>
+        </div>
       </aside>
 
-      {/* ── Center: header + filter + content ── */}
+      {/* ── Main content area ── */}
       <div className="flex flex-col flex-1 min-w-0">
-
-        {/* Top bar: LLM status, token stats, misc controls */}
-        <header className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-surface border-b border-border shrink-0">
-          <ContextPie />
-          <TokenCounter />
-          <div className="ml-auto flex items-center gap-2">
-            <UpdateChecker onUpdateFailed={onUpdateFailed} />
-            <LLMConfig />
-          </div>
-        </header>
-
-        {/* Filter bar — only on capture-related tabs */}
-        {FILTER_TABS.has(activeTab) && (
-          <div className="shrink-0 border-b border-border">
-            <FilterBar />
-          </div>
-        )}
-
-        {/* Main content */}
         <main className="flex-1 overflow-hidden" role="tabpanel">
           <TabContent activeTab={activeTab} />
         </main>
       </div>
 
-      {/* ── Right Panel — always visible, resizable ── */}
+      {/* ── AI Panel: hidden by default, slides in from right ── */}
       <div
-        className="shrink-0 bg-surface border-l border-border flex flex-col overflow-hidden relative"
-        style={{ width: panelWidth }}
+        className="shrink-0 bg-surface border-l border-border flex flex-col overflow-hidden transition-[width] duration-[240ms]"
+        style={{
+          width: aiPanelOpen ? 320 : 0,
+          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
       >
-        {/* Drag handle */}
-        <div
-          onMouseDown={onResizeMouseDown}
-          className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-accent/40 transition-colors z-10"
-          title="Drag to resize"
-        />
-        <RightPanel />
+        {/* Panel header — min-w keeps it from collapsing during animation */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0 min-w-[320px]">
+          <span className="text-sm font-medium text-foreground">AI Assistant</span>
+          <button
+            onClick={() => setAiPanelOpen(false)}
+            aria-label="Close AI panel"
+            className="text-muted-dim hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* RightPanel always mounted — preserves WebSocket state */}
+        <div className="flex-1 overflow-hidden min-w-[320px]">
+          <RightPanel />
+        </div>
       </div>
     </div>
   );
