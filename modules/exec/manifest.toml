@@ -1,0 +1,25 @@
+[module]
+name = "exec"
+version = "1.0.0"
+description = "Privileged shell command execution for the AI agent"
+optional = true
+process = "daemon"
+
+[requires]
+privilege = "admin"
+
+[requires.hardware]
+
+[python]
+packages = []
+process = "daemon"
+
+[provides]
+tools = ["exec_command", "exec_powershell", "exec_bash"]
+ui = []
+
+[provides.nav]
+
+[safety]
+max_permission = "dangerous"
+audit_log = true

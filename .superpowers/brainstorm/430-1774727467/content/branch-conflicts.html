@@ -1,0 +1,79 @@
+<h2>Branch vs. 3-Process Architecture — Conflict Map</h2>
+<p class="subtitle">Before merging, here's what conflicts and what's safe</p>
+
+<div class="section">
+  <h3>focused-saha &nbsp;<span style="color:#1a7f37;font-size:13px;">✓ No conflicts — safe to merge anytime</span></h3>
+  <p style="font-size:13px;color:#57606a;">1 commit: auto-download Python embed zip in <code>electron/setup.js</code>. Dev-only, zero impact on architecture.</p>
+</div>
+
+<div class="section">
+  <h3>tender-fermi &nbsp;<span style="color:#cf222e;font-size:13px;">5 architectural conflicts</span></h3>
+  <p style="font-size:12px;color:#57606a;margin-bottom:12px;">Built on the OLD monolithic backend. New 3-process design uses Redis streams between Gateway → Engine → Daemon. These conflicts are where the two models clash:</p>
+
+  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead>
+      <tr style="background:#f6f8fa;border-bottom:2px solid #d0d7de;">
+        <th style="padding:8px 10px;text-align:left;width:22%;">Feature</th>
+        <th style="padding:8px 10px;text-align:left;width:28%;">tender-fermi does</th>
+        <th style="padding:8px 10px;text-align:left;width:28%;">3-process expects</th>
+        <th style="padding:8px 10px;text-align:left;width:22%;">Fix needed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #d0d7de;background:#fff0f0;">
+        <td style="padding:8px 10px;font-weight:600;">🔴 Autonomous/Shell mode</td>
+        <td style="padding:8px 10px;">Module-level globals in <code>backend/agent/chat.py</code></td>
+        <td style="padding:8px 10px;">Engine + Gateway are separate processes — globals don't sync</td>
+        <td style="padding:8px 10px;">Store flags in Redis config stream, read on each process start</td>
+      </tr>
+      <tr style="border-bottom:1px solid #d0d7de;background:#fff0f0;">
+        <td style="padding:8px 10px;font-weight:600;">🔴 Exec tool</td>
+        <td style="padding:8px 10px;">Runs in Engine (via symlink to <code>backend/agent/tools/exec.py</code>)</td>
+        <td style="padding:8px 10px;">Shell execution = privileged → Daemon's job</td>
+        <td style="padding:8px 10px;">Move exec.py to Daemon; Engine sends <code>ns:tool.request</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid #d0d7de;background:#fff4e5;">
+        <td style="padding:8px 10px;font-weight:600;">🟠 Background tasks</td>
+        <td style="padding:8px 10px;">Adds <code>backend/agent/tasks.py</code>, API endpoints in Gateway legacy routes</td>
+        <td style="padding:8px 10px;">Long-running tasks belong in Engine, not mounted in Gateway</td>
+        <td style="padding:8px 10px;">Run task loop in Engine; Gateway proxies via <code>ns:task.request</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid #d0d7de;background:#fff4e5;">
+        <td style="padding:8px 10px;font-weight:600;">🟠 Topology endpoints</td>
+        <td style="padding:8px 10px;">Adds <code>/topology</code> + <code>/topology/scan</code> in <code>backend/api/routes.py</code>; calls tshark directly</td>
+        <td style="padding:8px 10px;">tshark = privileged = Daemon's job, not Gateway's</td>
+        <td style="padding:8px 10px;">Move topology generation to Daemon; Gateway sends <code>ns:tool.request</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid #d0d7de;background:#fffbe5;">
+        <td style="padding:8px 10px;font-weight:600;">🟡 Tool auth</td>
+        <td style="padding:8px 10px;">Passes <code>allow_dangerous</code> flag from module globals</td>
+        <td style="padding:8px 10px;">Multi-process = flags must travel in the Redis message, not via globals</td>
+        <td style="padding:8px 10px;">Embed <code>allow_dangerous</code> in <code>ns:tool.request</code> payload</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" style="margin-top:16px;">
+  <h3>What can be merged as-is from tender-fermi</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:12px;">
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">10 new backend skills (.md files)</span>
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">utils/proc.py subprocess wrapper</span>
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">Modbus + capture minor fixes</span>
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">SchedulerPanel frontend component</span>
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">NetworkTopologyDiagram frontend component</span>
+    <span style="background:#dafbe1;border:1px solid #1a7f37;border-radius:4px;padding:4px 10px;color:#1a7f37;">topology_map.py logic (needs re-homing)</span>
+    <span style="background:#fff3cd;border:1px solid #e6a817;border-radius:4px;padding:4px 10px;color:#856404;">settings changes (need review)</span>
+  </div>
+</div>
+
+<div class="section" style="margin-top:16px;padding:12px;background:#f1f8ff;border:1px solid #0969da;border-radius:6px;font-size:12px;">
+  <strong>Recommended test sequence:</strong>
+  <ol style="margin:8px 0 0 0;padding-left:18px;line-height:2;">
+    <li>Commit untracked <code>gateway/ engine/ daemon/ shared/</code> first (preserve the refactor work)</li>
+    <li>Test the 3-process stack runs (Redis up, all 3 processes start)</li>
+    <li>Merge focused-saha (safe, no conflicts)</li>
+    <li>Cherry-pick safe tender-fermi pieces (skills, frontend components, proc.py)</li>
+    <li>Port conflicting pieces (exec, tasks, topology) to use Redis RPC before merging</li>
+  </ol>
+</div>

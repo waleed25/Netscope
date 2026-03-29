@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Module Manifest System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; padding: 24px; font-size: 13px; }
+  h1 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: #8b949e; font-size: 12px; margin-bottom: 24px; }
+  h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8b949e; margin-bottom: 10px; margin-top: 24px; }
+  h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .divider { border: none; border-top: 1px solid #21262d; margin: 20px 0; }
+
+  /* Lifecycle flow */
+  .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 24px; overflow-x: auto; }
+  .flow-step { flex: 1; min-width: 110px; background: #161b22; border: 1px solid #30363d; padding: 12px 10px; text-align: center; position: relative; }
+  .flow-step:not(:first-child) { border-left: none; }
+  .flow-step:first-child { border-radius: 8px 0 0 8px; }
+  .flow-step:last-child  { border-radius: 0 8px 8px 0; }
+  .flow-num { width: 22px; height: 22px; border-radius: 50%; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .flow-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .flow-desc { font-size: 10px; color: #8b949e; line-height: 1.4; }
+  .flow-arrow { display: flex; align-items: center; color: #30363d; font-size: 18px; padding: 0 2px; flex-shrink: 0; }
+
+  /* Code blocks */
+  .code { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px 14px; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 11px; line-height: 1.7; }
+  .kw  { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .key { color: #79c0ff; }
+  .val { color: #e3b341; }
+  .cmt { color: #6e7681; }
+  .ok  { color: #56d364; }
+  .err { color: #f85149; }
+
+  /* Annotation boxes */
+  .annot { display: flex; gap: 16px; }
+  .annot-code { flex: 1.2; }
+  .annot-notes { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .note { background: #161b22; border-left: 3px solid; border-radius: 0 6px 6px 0; padding: 8px 10px; font-size: 11px; }
+  .note-title { font-weight: 700; margin-bottom: 3px; font-size: 11px; }
+  .note-body  { color: #8b949e; line-height: 1.5; font-size: 10px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card  { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+
+  /* File tree */
+  .tree { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.8; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px 14px; }
+
+  /* Registry table */
+  .rtable { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .rtable th { text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e; border-bottom: 1px solid #30363d; }
+  .rtable td { padding: 6px 8px; border-bottom: 1px solid #21262d; color: #e6edf3; vertical-align: top; }
+  .rtable tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .b-read   { background: #0d2218; color: #56d364; }
+  .b-write  { background: #1a2545; color: #79c0ff; }
+  .b-exec   { background: #3d2b10; color: #e3b341; }
+  .b-danger { background: #3d0d0d; color: #f85149; }
+  .b-inst   { background: #1a4731; color: #56d364; }
+  .b-miss   { background: #21262d; color: #6e7681; }
+
+  /* State machine */
+  .states { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .state { border-radius: 6px; padding: 8px 12px; font-size: 11px; border: 1px solid; }
+
+  ul { padding-left: 16px; }
+  li { color: #8b949e; margin: 4px 0; font-size: 11px; line-height: 1.5; }
+  li span { color: #e6edf3; }
+  li code { background: #21262d; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: monospace; color: #e3b341; }
+</style>
+</head>
+<body>
+
+<h1>Module Manifest System — How It Works</h1>
+<p class="sub">From authoring a module → hardware detection → install → runtime → tool available in wizards</p>
+
+<!-- LIFECYCLE -->
+<h2>Full lifecycle</h2>
+<div class="flow">
+  <div class="flow-step">
+    <div class="flow-num" style="background:#1f4a6e;color:#79c0ff;">1</div>
+    <div class="flow-title" style="color:#79c0ff;">Author</div>
+    <div class="flow-desc">Write manifest.toml + backend + frontend for a new module</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#3d2b10;color:#e3b341;">2</div>
+    <div class="flow-title" style="color:#e3b341;">Detect</div>
+    <div class="flow-desc">Electron runs capability detector — GPU, RAM, OS, Npcap</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#0d2218;color:#56d364;">3</div>
+    <div class="flow-title" style="color:#56d364;">Setup</div>
+    <div class="flow-desc">Wizard shows compatible modules; user picks what to install</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#3d1a5c;color:#bc8cff;">4</div>
+    <div class="flow-title" style="color:#bc8cff;">Install</div>
+    <div class="flow-desc">Pip installs only selected modules' deps into embedded Python</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#1a0d22;color:#bc8cff;">5</div>
+    <div class="flow-title" style="color:#bc8cff;">Persist</div>
+    <div class="flow-desc">installed.json records chosen modules + dep hashes</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#1f4a6e;color:#79c0ff;">6</div>
+    <div class="flow-title" style="color:#79c0ff;">Start</div>
+    <div class="flow-desc">Orchestrator reads installed.json — spawns only needed processes</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#0d2218;color:#56d364;">7</div>
+    <div class="flow-title" style="color:#56d364;">Register</div>
+    <div class="flow-desc">Each process loads its modules and registers tools into the registry</div>
+  </div>
+  <div class="flow-arrow">›</div>
+  <div class="flow-step">
+    <div class="flow-num" style="background:#3d0d0d;color:#f85149;">8</div>
+    <div class="flow-title" style="color:#f85149;">Use</div>
+    <div class="flow-desc">Wizards query registry for available tools and compose them</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FILE STRUCTURE -->
+<h2>Where manifest files live</h2>
+<div class="grid2" style="margin-bottom:20px;">
+<div>
+<div class="tree">
+<span style="color:#e3b341;">netscope-desktop/</span>
+├── <span style="color:#e3b341;">modules/</span>                 <span style="color:#6e7681;"># all feature modules live here</span>
+│   ├── <span style="color:#58a6ff;">capture/</span>
+│   │   ├── <span style="color:#56d364;">manifest.toml</span>    <span style="color:#6e7681;"># ← the contract</span>
+│   │   ├── backend/         <span style="color:#6e7681;"># Python code for this module</span>
+│   │   └── frontend/        <span style="color:#6e7681;"># React components</span>
+│   ├── <span style="color:#58a6ff;">modbus/</span>
+│   │   ├── <span style="color:#56d364;">manifest.toml</span>
+│   │   ├── backend/
+│   │   └── frontend/
+│   ├── <span style="color:#58a6ff;">llm-agent/</span>
+│   │   ├── <span style="color:#56d364;">manifest.toml</span>
+│   │   ├── backend/
+│   │   └── frontend/
+│   └── <span style="color:#58a6ff;">rag/</span> ...
+│
+├── <span style="color:#bc8cff;">data/</span>
+│   └── <span style="color:#bc8cff;">installed.json</span>       <span style="color:#6e7681;"># written at setup, read at boot</span>
+│
+├── gateway/ engine/ daemon/  <span style="color:#6e7681;"># processes — load modules dynamically</span>
+└── shared/                   <span style="color:#6e7681;"># events, bus, models</span>
+</div>
+</div>
+<div>
+<div class="tree">
+<span style="color:#6e7681;"># data/installed.json — written by setup wizard</span>
+{
+  <span style="color:#79c0ff;">"installed_at"</span>: <span style="color:#a5d6ff;">"2026-03-28T12:00:00Z"</span>,
+  <span style="color:#79c0ff;">"hardware"</span>: {
+    <span style="color:#79c0ff;">"gpu_vram_gb"</span>: <span style="color:#e3b341;">8</span>,
+    <span style="color:#79c0ff;">"ram_gb"</span>: <span style="color:#e3b341;">32</span>,
+    <span style="color:#79c0ff;">"npcap"</span>: <span style="color:#56d364;">true</span>,
+    <span style="color:#79c0ff;">"os"</span>: <span style="color:#a5d6ff;">"windows"</span>
+  },
+  <span style="color:#79c0ff;">"modules"</span>: {
+    <span style="color:#79c0ff;">"capture"</span>:      { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#56d364;">true</span>,  <span style="color:#79c0ff;">"version"</span>: <span style="color:#a5d6ff;">"1.0"</span> },
+    <span style="color:#79c0ff;">"modbus"</span>:       { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#56d364;">true</span>,  <span style="color:#79c0ff;">"version"</span>: <span style="color:#a5d6ff;">"1.0"</span> },
+    <span style="color:#79c0ff;">"llm-agent"</span>:    { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#56d364;">true</span>,  <span style="color:#79c0ff;">"version"</span>: <span style="color:#a5d6ff;">"1.0"</span> },
+    <span style="color:#79c0ff;">"rag"</span>:          { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#56d364;">true</span>,  <span style="color:#79c0ff;">"version"</span>: <span style="color:#a5d6ff;">"1.0"</span> },
+    <span style="color:#79c0ff;">"ics-dnp3"</span>:     { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#f85149;">false</span>, <span style="color:#79c0ff;">"reason"</span>: <span style="color:#a5d6ff;">"user_skipped"</span> },
+    <span style="color:#79c0ff;">"reporting"</span>:    { <span style="color:#79c0ff;">"enabled"</span>: <span style="color:#56d364;">true</span>,  <span style="color:#79c0ff;">"version"</span>: <span style="color:#a5d6ff;">"1.0"</span> }
+  }
+}
+</div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- MANIFEST ANATOMY -->
+<h2>Manifest anatomy — annotated</h2>
+<div class="annot">
+<div class="annot-code">
+<div class="code">
+<span class="cmt"># modules/llm-agent/manifest.toml</span>
+
+[<span class="key">module</span>]
+<span class="key">name</span>        = <span class="str">"llm-agent"</span>
+<span class="key">version</span>     = <span class="str">"1.2.0"</span>
+<span class="key">description</span> = <span class="str">"AI chat, tool-use, and skills system"</span>
+<span class="key">optional</span>    = <span class="val">true</span>    <span class="cmt"># user can skip at setup</span>
+<span class="key">process</span>     = <span class="str">"engine"</span> <span class="cmt"># which process hosts this module</span>
+
+[<span class="key">requires</span>]
+<span class="key">modules</span>     = []        <span class="cmt"># no module dependencies</span>
+
+  [<span class="key">requires.hardware</span>]
+  <span class="key">ram_gb_min</span>  = <span class="val">4</span>       <span class="cmt"># minimum to show in setup</span>
+  <span class="key">gpu_modes</span>   = [<span class="str">"cuda"</span>, <span class="str">"cpu"</span>, <span class="str">"api"</span>]
+
+  [<span class="key">requires.privilege</span>]
+  <span class="key">level</span>       = <span class="str">"user"</span>   <span class="cmt"># no admin needed</span>
+
+[<span class="key">python</span>]
+<span class="key">packages</span> = [
+  <span class="str">"openai>=1.0"</span>,
+  <span class="str">"tiktoken"</span>,
+  <span class="str">"httpx"</span>,
+]
+<span class="key">packages_gpu</span> = [         <span class="cmt"># only installed on GPU path</span>
+  <span class="str">"torch"</span>,
+]
+
+[<span class="key">capabilities</span>]
+<span class="key">llm_adapter</span> = <span class="str">"auto"</span>   <span class="cmt"># ollama → llama.cpp → api</span>
+
+[<span class="key">provides</span>]
+<span class="key">tools</span>    = [<span class="str">"llm_chat"</span>, <span class="str">"llm_analyze"</span>, <span class="str">"llm_stream"</span>]
+<span class="key">ui</span>       = [<span class="str">"ChatBox"</span>, <span class="str">"LLMConfig"</span>]
+<span class="key">wizards</span>  = []            <span class="cmt"># no wizards from this module</span>
+<span class="key">reports</span>  = []
+
+[<span class="key">provides.nav</span>]
+<span class="key">icon_rail</span>  = <span class="val">false</span>      <span class="cmt"># doesn't add a nav icon</span>
+<span class="key">right_panel_tab</span> = <span class="str">"chat"</span> <span class="cmt"># adds tab to right panel</span>
+
+[<span class="key">safety</span>]
+<span class="key">max_permission</span> = <span class="str">"read"</span> <span class="cmt"># tools it registers can read state</span>
+<span class="key">audit_log</span>      = <span class="val">true</span>
+</div>
+</div>
+<div class="annot-notes">
+  <div class="note" style="border-color:#79c0ff;">
+    <div class="note-title" style="color:#79c0ff;">[module] block</div>
+    <div class="note-body">Identity + which process hosts it. The process orchestrator reads this to know if it needs to start the Engine process at all.</div>
+  </div>
+  <div class="note" style="border-color:#e3b341;">
+    <div class="note-title" style="color:#e3b341;">[requires.hardware]</div>
+    <div class="note-body">Setup wizard runs capability detection first, then filters the module list. A device with 2GB RAM never sees llm-agent as an option.</div>
+  </div>
+  <div class="note" style="border-color:#56d364;">
+    <div class="note-title" style="color:#56d364;">[python] packages</div>
+    <div class="note-body">Deps are installed <strong>per module</strong> into the embedded Python. packages_gpu only installs on GPU path — CPU installs skip torch entirely.</div>
+  </div>
+  <div class="note" style="border-color:#bc8cff;">
+    <div class="note-title" style="color:#bc8cff;">[provides] tools</div>
+    <div class="note-body">These tool names are registered into the global Tool Registry at startup. Wizards discover tools by name — they never import Python modules directly.</div>
+  </div>
+  <div class="note" style="border-color:#f85149;">
+    <div class="note-title" style="color:#f85149;">[safety] max_permission</div>
+    <div class="note-body">Hard cap on what any tool from this module can do. Prevents a future tool author from accidentally registering a "dangerous" tool under a "read-only" module.</div>
+  </div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- TOOL REGISTRY -->
+<h2>Tool Registry — populated at boot from installed manifests</h2>
+<p style="color:#8b949e;font-size:11px;margin-bottom:10px;">
+  At startup, each process scans <code style="background:#21262d;padding:1px 5px;border-radius:3px;font-size:10px;color:#e3b341;">installed.json</code> and loads only its enabled modules. Each module registers its tools into a shared registry. Wizards and the LLM only see tools in this registry.
+</p>
+
+<table class="rtable" style="margin-bottom:20px;">
+  <thead>
+    <tr>
+      <th>Tool name</th>
+      <th>Module</th>
+      <th>Process</th>
+      <th>Permission</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code style="color:#79c0ff;">capture_start</code></td>
+      <td>capture</td>
+      <td style="color:#f85149;">daemon</td>
+      <td><span class="badge b-exec">exec</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr>
+      <td><code style="color:#79c0ff;">modbus_read</code></td>
+      <td>modbus</td>
+      <td style="color:#f85149;">daemon</td>
+      <td><span class="badge b-read">read</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr>
+      <td><code style="color:#79c0ff;">modbus_write</code></td>
+      <td>modbus</td>
+      <td style="color:#f85149;">daemon</td>
+      <td><span class="badge b-write">write</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr>
+      <td><code style="color:#79c0ff;">llm_analyze</code></td>
+      <td>llm-agent</td>
+      <td style="color:#56d364;">engine</td>
+      <td><span class="badge b-read">read</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr>
+      <td><code style="color:#79c0ff;">report_generate</code></td>
+      <td>reporting</td>
+      <td style="color:#56d364;">engine</td>
+      <td><span class="badge b-read">read</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr>
+      <td><code style="color:#79c0ff;">exec_shell</code></td>
+      <td>exec</td>
+      <td style="color:#f85149;">daemon</td>
+      <td><span class="badge b-danger">dangerous</span></td>
+      <td><span class="badge b-inst">installed</span></td>
+    </tr>
+    <tr style="opacity:0.5;">
+      <td><code style="color:#79c0ff;">dnp3_analyze</code></td>
+      <td>ics-dnp3</td>
+      <td style="color:#f85149;">daemon</td>
+      <td><span class="badge b-read">read</span></td>
+      <td><span class="badge b-miss">not installed</span></td>
+    </tr>
+    <tr style="opacity:0.5;">
+      <td><code style="color:#79c0ff;">rag_query</code></td>
+      <td>rag</td>
+      <td style="color:#56d364;">engine</td>
+      <td><span class="badge b-read">read</span></td>
+      <td><span class="badge b-miss">not installed</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- SETUP WIZARD FLOW -->
+<h2>How setup wizard uses manifests</h2>
+<div class="grid2">
+<div class="card">
+  <h3 style="margin-bottom:10px;">Hardware detection → module filter</h3>
+  <div class="code" style="font-size:10px;">
+<span class="cmt"># electron/capability_detector.py</span>
+<span class="cmt"># Runs ONCE at first launch, result cached</span>
+
+caps = HardwareCaps(
+  gpu_vram_gb = <span class="val">detect_gpu_vram()</span>,  <span class="cmt"># 0 if no GPU</span>
+  ram_gb      = <span class="val">detect_ram()</span>,
+  npcap       = <span class="val">check_npcap()</span>,       <span class="cmt"># Win only</span>
+  libpcap     = <span class="val">check_libpcap()</span>,     <span class="cmt"># Mac/Linux</span>
+  os          = <span class="val">sys.platform</span>,
+  disk_gb     = <span class="val">detect_free_disk()</span>,
+)
+
+<span class="cmt"># Filter manifests by hardware caps</span>
+compatible = [
+  m <span class="kw">for</span> m <span class="kw">in</span> load_all_manifests()
+  <span class="kw">if</span> caps.satisfies(m.requires.hardware)
+]
+<span class="cmt"># → only compatible modules shown in wizard</span>
+  </div>
+</div>
+<div class="card">
+  <h3 style="margin-bottom:10px;">Process orchestrator — boot only what's needed</h3>
+  <div class="code" style="font-size:10px;">
+<span class="cmt"># electron/main.js — on app start</span>
+
+installed = read_installed_json()
+
+needs_daemon = installed.modules.any(
+  m => m.enabled && m.process == <span class="str">"daemon"</span>
+)
+needs_engine = installed.modules.any(
+  m => m.enabled && m.process == <span class="str">"engine"</span>
+)
+
+<span class="cmt"># Always start gateway</span>
+spawn(<span class="str">"gateway/main.py"</span>)
+
+<span class="kw">if</span> (needs_daemon):
+  spawn_elevated(<span class="str">"daemon/main.py"</span>)  <span class="cmt"># UAC</span>
+
+<span class="kw">if</span> (needs_engine):
+  spawn(<span class="str">"engine/main.py"</span>)
+
+<span class="cmt"># CPU-only user: no GPU modules installed</span>
+<span class="cmt"># → Engine never starts (save RAM)</span>
+  </div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- FRONTEND INTEGRATION -->
+<h2>Frontend — feature flags from installed.json</h2>
+<div class="grid2">
+<div>
+<div class="code" style="font-size:10px;">
+<span class="cmt">// frontend/src/store/features.ts</span>
+<span class="cmt">// Gateway serves /features endpoint from installed.json</span>
+
+<span class="kw">const</span> features = <span class="kw">await</span> api.get(<span class="str">"/features"</span>)
+<span class="cmt">// → { capture: true, modbus: true,</span>
+<span class="cmt">//     llm-agent: true, ics-dnp3: false }</span>
+
+<span class="cmt">// Store in Zustand — never changes at runtime</span>
+useFeatureStore.setState(features)
+</div>
+<div class="code" style="margin-top:8px;font-size:10px;">
+<span class="cmt">// In any component:</span>
+<span class="kw">const</span> hasModbus = useFeature(<span class="str">"modbus"</span>)
+
+<span class="kw">return</span> (
+  &lt;IconRail&gt;
+    &lt;NavIcon view=<span class="str">"capture"</span> /&gt;     <span class="cmt">// always</span>
+    {hasModbus &amp;&amp;
+      &lt;NavIcon view=<span class="str">"modbus"</span> /&gt;}   <span class="cmt">// conditional</span>
+  &lt;/IconRail&gt;
+)
+</div>
+</div>
+<div>
+<div class="code" style="font-size:10px;">
+<span class="cmt">// Lazy-load feature panel only if installed</span>
+<span class="kw">const</span> ModbusPanel = React.lazy(
+  () => <span class="kw">import</span>(<span class="str">"../features/modbus/ModbusPanel"</span>)
+)
+
+<span class="cmt">// In route/view map:</span>
+<span class="kw">const</span> VIEWS = {
+  capture:   () => &lt;PacketsAndInsights /&gt;,
+  modbus:    () => hasModbus
+               ? &lt;Suspense&gt;&lt;ModbusPanel /&gt;&lt;/Suspense&gt;
+               : &lt;NotInstalled module=<span class="str">"modbus"</span> /&gt;,
+  <span class="cmt">// ics, reporting, etc. same pattern</span>
+}
+
+<span class="cmt">// NotInstalled shows:</span>
+<span class="cmt">// "This module isn't installed.</span>
+<span class="cmt">//  Run setup to add it."</span>
+</div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- DEPENDENCY RESOLUTION -->
+<h2>Dependency resolution — at install time, not runtime</h2>
+<div class="card" style="margin-bottom:0;">
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <h3 style="margin-bottom:8px;font-size:12px;">Example: user selects "reporting"</h3>
+      <ul>
+        <li><span>reporting</span> requires <code>llm-agent</code></li>
+        <li><code>llm-agent</code> requires nothing</li>
+        <li>Setup wizard auto-selects <code>llm-agent</code> as a dependency</li>
+        <li>User sees: <em style="color:#8b949e;">"Reporting requires LLM Agent (auto-added)"</em></li>
+        <li>If user deselects <code>llm-agent</code>, <code>reporting</code> is also deselected</li>
+      </ul>
+    </div>
+    <div style="flex:1;min-width:200px;">
+      <h3 style="margin-bottom:8px;font-size:12px;">Adding a module later (no reinstall)</h3>
+      <ul>
+        <li>User goes to Settings → Modules</li>
+        <li>Sees uninstalled compatible modules</li>
+        <li>Clicks "Install ICS/DNP3"</li>
+        <li>Pip installs only that module's deps</li>
+        <li><code>installed.json</code> updated</li>
+        <li>Gateway sends <code style="color:#e3b341;">module.loaded</code> event over Redis</li>
+        <li>All processes hot-reload that module — <strong>no restart needed</strong></li>
+      </ul>
+    </div>
+    <div style="flex:1;min-width:200px;">
+      <h3 style="margin-bottom:8px;font-size:12px;">What happens on unsupported device</h3>
+      <ul>
+        <li>Device has no GPU, 4GB RAM, no Npcap</li>
+        <li>Capability detector sets caps</li>
+        <li>Setup shows: capture = <span style="color:#f85149;">incompatible</span>, modbus = <span style="color:#56d364;">ok</span>, llm-agent = <span style="color:#e3b341;">CPU mode</span></li>
+        <li>User can still install modbus + llm (CPU) — just no packet capture</li>
+        <li>UI hides Capture nav icon entirely</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

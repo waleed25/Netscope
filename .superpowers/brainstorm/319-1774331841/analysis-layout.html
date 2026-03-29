@@ -1,0 +1,72 @@
+<h2>Where should the two analysis modes live?</h2>
+<p class="subtitle">Both "Quick Analysis" (LLM tool-driven) and "Deep Analysis" (Python pipeline + narrator) need a home in the UI. Pick the layout that feels right.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>New "Analysis" Tab in the tab bar</h3>
+      <p>Add an <strong>Analysis</strong> tab next to Dashboard, Capture, RAG, etc. Inside it: a mode toggle between Quick and Deep at the top, with the results panel below. Clean separation from existing panels.</p>
+      <div style="margin-top:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#8b949e;">
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <span style="background:#21262d;padding:2px 8px;border-radius:4px;color:#58a6ff;">Dashboard</span>
+          <span style="background:#21262d;padding:2px 8px;border-radius:4px;color:#58a6ff;">Capture</span>
+          <span style="background:#388bfd;padding:2px 8px;border-radius:4px;color:#fff;border:1px solid #388bfd;">▶ Analysis</span>
+          <span style="background:#21262d;padding:2px 8px;border-radius:4px;color:#58a6ff;">RAG</span>
+          <span style="background:#21262d;padding:2px 8px;border-radius:4px;color:#58a6ff;">Tools</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+          <span style="color:#8b949e;font-size:10px;">MODE:</span>
+          <span style="background:#1f6feb;padding:2px 10px;border-radius:3px;color:#fff;font-size:10px;">● Quick</span>
+          <span style="background:#21262d;padding:2px 10px;border-radius:3px;color:#8b949e;font-size:10px;">○ Deep</span>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;font-size:10px;color:#8b949e;min-height:60px;">
+          Analysis results render here...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Mode toggle inside the existing Insights panel</h3>
+      <p>The current <strong>InsightPanel</strong> gets a mode toggle: General / Security / ICS / <strong>Quick</strong> / <strong>Deep</strong>. Deep mode expands the panel with structured report sections. No new tab needed.</p>
+      <div style="margin-top:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#8b949e;">
+        <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="background:#21262d;padding:2px 6px;border-radius:3px;font-size:10px;">General</span>
+          <span style="background:#21262d;padding:2px 6px;border-radius:3px;font-size:10px;">Security</span>
+          <span style="background:#21262d;padding:2px 6px;border-radius:3px;font-size:10px;">ICS</span>
+          <span style="background:#1f6feb;padding:2px 6px;border-radius:3px;font-size:10px;color:#fff;">Quick ⚡</span>
+          <span style="background:#d29922;padding:2px 6px;border-radius:3px;font-size:10px;color:#000;">Deep 🔬</span>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;font-size:10px;color:#8b949e;min-height:60px;">
+          Structured report sections expand inline...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Floating "Analyze" button → side drawer</h3>
+      <p>A persistent <strong>Analyze</strong> button on the main toolbar opens a right-side drawer overlaying the current view. Mode toggle at the drawer top, report rendered inside. Non-intrusive, always accessible.</p>
+      <div style="margin-top:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#8b949e;display:flex;gap:8px;">
+        <div style="flex:1;">
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;font-size:10px;color:#8b949e;min-height:80px;">
+            Main app view (packets, chat)
+          </div>
+        </div>
+        <div style="width:120px;background:#161b22;border:1px solid #388bfd;border-radius:4px;padding:8px;font-size:10px;color:#8b949e;">
+          <div style="color:#388bfd;margin-bottom:4px;font-size:10px;">◀ Analysis</div>
+          <div style="display:flex;gap:3px;margin-bottom:6px;">
+            <span style="background:#1f6feb;padding:1px 4px;border-radius:2px;color:#fff;font-size:9px;">Quick</span>
+            <span style="background:#21262d;padding:1px 4px;border-radius:2px;font-size:9px;">Deep</span>
+          </div>
+          <div style="font-size:9px;">Report renders here...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

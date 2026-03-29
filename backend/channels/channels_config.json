@@ -1,0 +1,26 @@
+{
+  "whatsapp": {
+    "name": "whatsapp",
+    "enabled": false,
+    "token": "",
+    "dm_policy": "open",
+    "allowed_user_ids": [
+      "14077591165@s.whatsapp.net"
+    ],
+    "pending_pairings": {},
+    "extra": {
+      "bridge_port": 3500
+    }
+  },
+  "telegram": {
+    "name": "telegram",
+    "enabled": true,
+    "token": "8693643543:AAHSCKM5ZJxcLf6_bBMtVDXHkljR1piWRr8",
+    "dm_policy": "pairing",
+    "allowed_user_ids": [
+      "8213889735"
+    ],
+    "pending_pairings": {},
+    "extra": {}
+  }
+}

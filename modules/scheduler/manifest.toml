@@ -1,0 +1,27 @@
+[module]
+name = "scheduler"
+version = "1.0.0"
+description = "Scheduled task automation"
+optional = true
+process = "gateway"
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+
+[python]
+packages = []
+process = "gateway"
+
+[provides]
+tools = ["schedule_task", "list_tasks", "cancel_task"]
+ui = ["SchedulerPanel"]
+
+[provides.nav]
+sidebar_section = "System"
+sidebar_label = "Scheduler"
+
+[safety]
+max_permission = "write"
+audit_log = true

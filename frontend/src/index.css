@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  /* ── Light theme (default) ────────────────────────────────────────────── */
+  :root {
+    --color-background:          255 255 255;
+    --color-surface:             242 242 247;
+    --color-surface-hover:       229 229 234;
+    --color-surface-active:      209 209 214;
+    --color-border:              216 216 220;
+    --color-border-subtle:       229 229 234;
+    --color-foreground:          0 0 0;
+    --color-muted:               138 138 142;
+    --color-muted-dim:           174 174 178;
+    --color-accent:              0 122 255;
+    --color-success:             52 199 89;
+    --color-warning:             255 149 0;
+    --color-danger:              255 59 48;
+    --color-purple:              175 82 222;
+    --color-accent-muted:        90 160 255;
+    --color-severe:              255 59 48;
+    --color-pink:                255 45 85;
+    --color-accent-emphasis:     0 122 255;
+    --color-success-emphasis:    52 199 89;
+    --color-danger-emphasis:     255 59 48;
+    --color-purple-emphasis:     175 82 222;
+    --color-tool:                255 149 0;
+    --color-attention:           255 204 0;
+    --color-success-subtle:      218 251 225;
+    --color-danger-subtle:       255 235 233;
+    --color-warning-subtle:      255 248 197;
+    --color-accent-subtle:       221 244 255;
+    --color-purple-subtle:       251 239 255;
+    --color-muted-extra:         110 119 129;
+    --color-success-emphasis-hover: 45 164 78;
+    --color-accent-emphasis-hover:  0 102 214;
+    --color-danger-emphasis-hover:  224 36 36;
+    --color-purple-emphasis-hover:  147 51 234;
+    /* Status panel special bg */
+    --color-ok-bg:               218 251 225;
+    --color-down-bg:             255 235 233;
+    /* Protocol colors */
+    --color-protocol-http:       9 105 218;
+    --color-protocol-tls:        33 139 255;
+    --color-protocol-dns:        130 80 223;
+    --color-protocol-tcp:        26 127 55;
+    --color-protocol-udp:        154 103 0;
+    --color-protocol-icmp:       188 76 0;
+    --color-protocol-arp:        191 57 137;
+    --color-protocol-other:      101 109 118;
+  }
+
+  /* ── Dark theme ───────────────────────────────────────────────────────── */
+  .dark {
+    --color-background:          30 30 30;
+    --color-surface:             40 40 43;
+    --color-surface-hover:       58 58 60;
+    --color-surface-active:      56 56 58;
+    --color-border:              56 56 58;
+    --color-border-subtle:       44 44 46;
+    --color-foreground:          255 255 255;
+    --color-muted:               152 152 157;
+    --color-muted-dim:           99 99 102;
+    --color-accent:              10 132 255;
+    --color-success:             48 209 88;
+    --color-warning:             255 159 10;
+    --color-danger:              255 69 58;
+    --color-purple:              191 90 242;
+    --color-accent-muted:        10 132 255;
+    --color-severe:              255 69 58;
+    --color-pink:                255 55 95;
+    --color-accent-emphasis:     10 132 255;
+    --color-success-emphasis:    48 209 88;
+    --color-danger-emphasis:     255 69 58;
+    --color-purple-emphasis:     191 90 242;
+    --color-tool:                255 159 10;
+    --color-attention:           255 214 10;
+    --color-success-subtle:      15 45 27;
+    --color-danger-subtle:       45 15 15;
+    --color-warning-subtle:      45 27 0;
+    --color-accent-subtle:       13 65 157;
+    --color-purple-subtle:       45 27 105;
+    --color-muted-extra:         110 118 129;
+    --color-success-emphasis-hover: 46 160 67;
+    --color-accent-emphasis-hover:  56 139 253;
+    --color-danger-emphasis-hover:  248 81 73;
+    --color-purple-emphasis-hover:  137 87 229;
+    /* Status panel special bg */
+    --color-ok-bg:               13 32 16;
+    --color-down-bg:             42 10 10;
+    /* Protocol colors */
+    --color-protocol-http:       88 166 255;
+    --color-protocol-tls:        121 192 255;
+    --color-protocol-dns:        188 140 255;
+    --color-protocol-tcp:        63 185 80;
+    --color-protocol-udp:        210 153 34;
+    --color-protocol-icmp:       255 166 87;
+    --color-protocol-arp:        247 120 186;
+    --color-protocol-other:      139 148 158;
+
+    /* ── Wireshark-style packet row colors (dark theme only) ─────────────── */
+    .row-tcp   { background-color: #1a2535; color: #c8d8f0; }
+    .row-tls   { background-color: #1e1835; color: #d0c8f0; }
+    .row-dns   { background-color: #0f2018; color: #c0e8d0; }
+    .row-http  { background-color: #162030; color: #b8d8e8; }
+    .row-udp   { background-color: #1a2035; color: #c8c8f0; }
+    .row-arp   { background-color: #1a1a0f; color: #e8e8b8; }
+    .row-icmp  { background-color: #1a2020; color: #b8e0e0; }
+    .row-error { background-color: #2d1515; color: #f4b8b8; }
+    .row-warn  { background-color: #2a1e10; color: #f4d8b8; }
+  }
+
+  /* ── Third-party brand colors (theme-invariant) ───────────────────────── */
+  :root, .dark {
+    --color-brand-telegram:  42 171 238;
+    --color-brand-whatsapp:  37 211 102;
+  }
+
+  body {
+    background-color: rgb(var(--color-surface));
+    color: rgb(var(--color-foreground));
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--color-background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-muted-dim));
+  }
+
+  .row-selected { outline: 2px solid rgb(var(--color-accent)); outline-offset: -2px; }
+
+  /* ── Network Topology Edge Animation ───────────────────────────────────── */
+  @keyframes ns-flow {
+    from { stroke-dashoffset: 24; }
+    to { stroke-dashoffset: 0; }
+  }
+  .ns-flow-animated {
+    stroke-dasharray: 4 4 !important;
+    animation: ns-flow 0.8s linear infinite;
+  }
+
+  [class^="row-"]:hover,
+  [class*=" row-"]:hover {
+    filter: brightness(1.2);
+  }
+}
+
+@layer utilities {
+  .text-protocol-HTTP    { color: rgb(var(--color-protocol-http)); }
+  .text-protocol-HTTPS   { color: rgb(var(--color-protocol-http)); }
+  .text-protocol-TLS     { color: rgb(var(--color-protocol-tls)); }
+  .text-protocol-DNS     { color: rgb(var(--color-protocol-dns)); }
+  .text-protocol-TCP     { color: rgb(var(--color-protocol-tcp)); }
+  .text-protocol-UDP     { color: rgb(var(--color-protocol-udp)); }
+  .text-protocol-ICMP    { color: rgb(var(--color-protocol-icmp)); }
+  .text-protocol-ARP     { color: rgb(var(--color-protocol-arp)); }
+  .text-protocol-OTHER   { color: rgb(var(--color-protocol-other)); }
+
+  .bg-protocol-HTTP    { background-color: rgb(var(--color-protocol-http) / 0.15); }
+  .bg-protocol-HTTPS   { background-color: rgb(var(--color-protocol-http) / 0.15); }
+  .bg-protocol-TLS     { background-color: rgb(var(--color-protocol-tls) / 0.15); }
+  .bg-protocol-DNS     { background-color: rgb(var(--color-protocol-dns) / 0.15); }
+  .bg-protocol-TCP     { background-color: rgb(var(--color-protocol-tcp) / 0.1); }
+  .bg-protocol-UDP     { background-color: rgb(var(--color-protocol-udp) / 0.1); }
+  .bg-protocol-ICMP    { background-color: rgb(var(--color-protocol-icmp) / 0.1); }
+  .bg-protocol-ARP     { background-color: rgb(var(--color-protocol-arp) / 0.1); }
+  .bg-protocol-OTHER   { background-color: rgb(var(--color-protocol-other) / 0.08); }
+
+  /* Prose overrides for light mode */
+  .prose-themed {
+    --tw-prose-body: rgb(var(--color-foreground));
+    --tw-prose-headings: rgb(var(--color-foreground));
+    --tw-prose-links: rgb(var(--color-accent));
+    --tw-prose-code: rgb(var(--color-foreground));
+    --tw-prose-pre-bg: rgb(var(--color-surface));
+    --tw-prose-pre-code: rgb(var(--color-foreground));
+  }
+}

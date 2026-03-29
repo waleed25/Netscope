@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "netscope-frontend",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules\\vite\\bin\\vite.js", "--port", "5174", "--host", "127.0.0.1"],
+      "port": 5174,
+      "cwd": "frontend"
+    },
+    {
+      "name": "netscope-backend",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8002"],
+      "port": 8002,
+      "cwd": "backend"
+    }
+  ]
+}

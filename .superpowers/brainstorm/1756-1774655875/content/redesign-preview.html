@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d0d; font-family: 'Inter', system-ui, sans-serif; color: #e5e5e5; padding: 20px; }
+  h2 { color: #e5e5e5; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: #737373; font-size: 12px; margin-bottom: 20px; }
+
+  /* Tab switcher */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab { padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #1f1f1f; background: #111; color: #737373; transition: all 0.15s; }
+  .tab:hover { color: #e5e5e5; border-color: #333; }
+  .tab.active { background: #1a2744; color: #3b82f6; border-color: #3b82f6; }
+
+  .screen { display: none; }
+  .screen.visible { display: block; }
+
+  /* App shell */
+  .app { display: flex; flex-direction: column; height: 560px; border: 1px solid #1f1f1f; border-radius: 8px; overflow: hidden; background: #0a0a0a; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+
+  /* Header */
+  .header { height: 36px; background: #111; border-bottom: 1px solid #1f1f1f; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+  .app-name { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #3b82f6; letter-spacing: 2px; }
+  .header-sep { flex: 1; }
+  .header-chip { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 3px; padding: 2px 8px; font-size: 10px; color: #737373; font-family: monospace; }
+  .header-chip.model { color: #a78bfa; border-color: #2a1f4a; background: #150f2a; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px #22c55e; }
+
+  /* Body */
+  .body { display: flex; flex: 1; overflow: hidden; }
+
+  /* Icon rail */
+  .icon-rail { width: 64px; background: #0a0a0a; border-right: 1px solid #1f1f1f; display: flex; flex-direction: column; padding: 8px 0; gap: 2px; flex-shrink: 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; padding: 7px 4px; gap: 4px; cursor: pointer; position: relative; border-radius: 0; }
+  .nav-item:hover .nav-icon { opacity: 0.8; }
+  .nav-item.active { background: #0f1929; }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px; background: #3b82f6; border-radius: 0 2px 2px 0; }
+  .nav-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; opacity: 0.4; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-label { font-size: 8px; font-weight: 600; letter-spacing: 0.5px; color: #404040; text-transform: uppercase; }
+  .nav-item.active .nav-label { color: #3b82f6; }
+
+  /* SVG icons */
+  svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+  .nav-item.active svg { stroke: #3b82f6; }
+  .nav-item:not(.active) svg { stroke: #555; }
+
+  /* Main content */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Filter bar */
+  .filter-bar { height: 32px; background: #0d0d0d; border-bottom: 1px solid #1f1f1f; display: flex; align-items: center; padding: 0 8px; gap: 6px; flex-shrink: 0; }
+  .proto-badge { padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: 600; cursor: pointer; font-family: monospace; }
+  .proto-badge.tcp { background: #0a2010; color: #22c55e; border: 1px solid #22c55e33; }
+  .proto-badge.udp { background: #1e1000; color: #f97316; border: 1px solid #f9731633; }
+  .proto-badge.dns { background: #120d24; color: #a855f7; border: 1px solid #a855f733; }
+  .proto-badge.http { background: #0a1729; color: #3b82f6; border: 1px solid #3b82f633; }
+  .proto-badge.tls { background: #081a1a; color: #06b6d4; border: 1px solid #06b6d433; }
+  .proto-badge.icmp { background: #1a0808; color: #ef4444; border: 1px solid #ef444433; }
+  .filter-input { flex: 1; height: 20px; background: #111; border: 1px solid #222; border-radius: 3px; color: #e5e5e5; font-size: 10px; padding: 0 8px; font-family: monospace; outline: none; }
+  .filter-input::placeholder { color: #404040; }
+  .live-badge { display: flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; color: #22c55e; letter-spacing: 1px; padding: 2px 6px; background: #0a2010; border: 1px solid #22c55e33; border-radius: 3px; }
+
+  /* Packet table */
+  .table-wrap { flex: 1; overflow: auto; }
+  .packet-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; }
+  .packet-table thead th { background: #0d0d0d; color: #404040; font-weight: 600; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid #1f1f1f; text-align: left; position: sticky; top: 0; }
+  .packet-table tbody tr { border-bottom: 1px solid #141414; cursor: pointer; transition: background 0.05s; }
+  .packet-table tbody tr:hover { background: #141414; }
+  .packet-table tbody tr.selected { background: #0f1929; outline: 1px solid #3b82f633; outline-offset: -1px; }
+  .packet-table td { padding: 3px 8px; color: #c0c0c0; white-space: nowrap; }
+  .packet-table td.no { color: #404040; width: 40px; }
+  .packet-table td.time { color: #555; width: 70px; }
+  .packet-table td.ip { color: #a0a0a0; }
+  .packet-table td.info { color: #606060; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  .proto-pill { display: inline-block; padding: 1px 5px; border-radius: 2px; font-size: 9px; font-weight: 700; }
+  .proto-pill.TCP { background: #0a2010; color: #22c55e; }
+  .proto-pill.UDP { background: #1e1000; color: #f97316; }
+  .proto-pill.DNS { background: #120d24; color: #a855f7; }
+  .proto-pill.HTTP { background: #0a1729; color: #60a5fa; }
+  .proto-pill.TLS { background: #081a1a; color: #06b6d4; }
+  .proto-pill.ICMP { background: #1a0808; color: #ef4444; }
+  .proto-pill.ARP { background: #1a1008; color: #eab308; }
+
+  /* Right panel */
+  .right-panel { width: 220px; border-left: 1px solid #1f1f1f; background: #0a0a0a; display: flex; flex-direction: column; flex-shrink: 0; }
+  .panel-header { padding: 8px 10px; border-bottom: 1px solid #1f1f1f; font-size: 9px; font-weight: 700; color: #404040; letter-spacing: 1px; text-transform: uppercase; }
+  .insight-card { margin: 6px 8px; padding: 8px; background: #111; border-radius: 4px; border-left: 2px solid #3b82f6; }
+  .insight-card.warn { border-left-color: #f59e0b; }
+  .insight-card.danger { border-left-color: #ef4444; }
+  .insight-title { font-size: 10px; font-weight: 600; color: #e5e5e5; margin-bottom: 2px; }
+  .insight-meta { font-size: 9px; color: #555; font-family: monospace; }
+
+  /* Chat screen */
+  .chat-wrap { display: flex; flex-direction: column; height: 100%; }
+  .chat-model-bar { height: 28px; background: #0d0d0d; border-bottom: 1px solid #1f1f1f; display: flex; align-items: center; padding: 0 10px; gap: 6px; flex-shrink: 0; }
+  .chat-model-bar span { font-size: 9px; color: #555; font-family: monospace; }
+  .chat-model-bar .model-name { color: #a78bfa; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { display: flex; flex-direction: column; gap: 3px; max-width: 85%; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; }
+  .msg-bubble { padding: 8px 10px; border-radius: 6px; font-size: 11px; line-height: 1.5; }
+  .msg.user .msg-bubble { background: #1a2744; color: #c7d8f8; border: 1px solid #2a3f6a; }
+  .msg.assistant .msg-bubble { background: #111; color: #d0d0d0; border: 1px solid #1f1f1f; }
+  .msg-badge { font-size: 8px; font-weight: 700; color: #3b82f6; letter-spacing: 0.5px; padding: 1px 5px; background: #0f1929; border: 1px solid #3b82f633; border-radius: 2px; align-self: flex-start; margin-bottom: 2px; }
+  .chat-input-area { padding: 8px; border-top: 1px solid #1f1f1f; background: #0a0a0a; display: flex; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+  .chat-input { flex: 1; background: #111; border: 1px solid #222; border-radius: 4px; color: #e5e5e5; font-size: 11px; padding: 8px 10px; font-family: inherit; resize: none; outline: none; min-height: 36px; }
+  .chat-input::placeholder { color: #404040; }
+  .chat-send { background: #1a3a7a; border: 1px solid #3b82f6; color: #3b82f6; border-radius: 4px; padding: 6px 12px; font-size: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+  /* Tools screen */
+  .tools-layout { display: flex; height: 100%; }
+  .tool-list { width: 140px; border-right: 1px solid #1f1f1f; background: #0a0a0a; padding: 6px 0; flex-shrink: 0; }
+  .tool-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; font-size: 11px; color: #555; transition: all 0.1s; position: relative; }
+  .tool-item:hover { color: #e5e5e5; background: #0d0d0d; }
+  .tool-item.active { color: #e5e5e5; background: #0f1929; }
+  .tool-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #3b82f6; }
+  .tool-item svg { width: 12px; height: 12px; stroke-width: 1.5; flex-shrink: 0; }
+  .tool-main { flex: 1; display: flex; flex-direction: column; }
+  .tool-input-bar { padding: 8px; border-bottom: 1px solid #1f1f1f; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .tool-input-bar input { flex: 1; background: #111; border: 1px solid #222; border-radius: 3px; color: #e5e5e5; font-size: 11px; padding: 5px 8px; font-family: monospace; outline: none; }
+  .tool-input-bar input::placeholder { color: #404040; }
+  .run-btn { background: #1a3a7a; border: 1px solid #3b82f6; color: #3b82f6; border-radius: 3px; padding: 5px 12px; font-size: 10px; font-weight: 700; cursor: pointer; }
+  .terminal { flex: 1; background: #080808; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; overflow-y: auto; }
+  .term-line { line-height: 1.7; }
+  .term-line.cmd { color: #3b82f6; }
+  .term-line.ok { color: #22c55e; }
+  .term-line.data { color: #a0a0a0; }
+  .term-line.muted { color: #404040; }
+
+  /* Sidebar mode */
+  .sidebar { width: 180px; background: #0a0a0a; border-right: 1px solid #1f1f1f; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .sidebar-section { padding: 14px 0 4px; }
+  .sidebar-label { padding: 0 12px 4px; font-size: 8px; font-weight: 700; color: #333; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 5px 12px; cursor: pointer; font-size: 11px; color: #555; transition: all 0.1s; position: relative; }
+  .sidebar-item:hover { color: #e5e5e5; background: #0d0d0d; }
+  .sidebar-item.active { color: #e5e5e5; }
+  .sidebar-item.active::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 2px; background: #3b82f6; border-radius: 2px 0 0 2px; }
+  .sidebar-item svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+  .note { font-size: 10px; color: #555; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h2>Netscope Redesign Preview</h2>
+<p class="subtitle">Near-black · 64px icon rail · Sleek & Pro — click tabs to switch screens</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="showScreen('packets')">Packets & Capture</div>
+  <div class="tab" onclick="showScreen('chat')">Chat</div>
+  <div class="tab" onclick="showScreen('tools')">Network Tools</div>
+  <div class="tab" onclick="showScreen('sidebar')">Legacy Sidebar Mode</div>
+</div>
+
+<!-- SCREEN 1: Packets -->
+<div class="screen visible" id="screen-packets">
+<div class="app">
+  <div class="header">
+    <span class="app-name">NETSCOPE</span>
+    <div class="status-dot"></div>
+    <span style="font-size:9px;color:#22c55e;font-weight:700;letter-spacing:1px">LIVE</span>
+    <div class="header-sep"></div>
+    <span class="header-chip">ctx 4.2k / 8k</span>
+    <span class="header-chip model">qwen3:4b ▾</span>
+    <span style="color:#333;font-size:14px;cursor:pointer">⚙</span>
+  </div>
+  <div class="body">
+    <div class="icon-rail">
+      <div class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="9" rx="1"/><line x1="5" y1="11" x2="5" y2="14"/><line x1="11" y1="11" x2="11" y2="14"/><line x1="3" y1="14" x2="13" y2="14"/></svg></div>
+        <span class="nav-label">Capture</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><path d="M8 2L14 8 8 14 2 8Z"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="5" y1="8" x2="11" y2="8"/></svg></div>
+        <span class="nav-label">Tools</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><line x1="6" y1="4" x2="10" y2="4"/><line x1="4" y1="6" x2="8" y2="10"/><line x1="12" y1="6" x2="8" y2="10"/></svg></div>
+        <span class="nav-label">Topo</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="5" y1="3" x2="5" y2="13"/><line x1="11" y1="3" x2="11" y2="13"/></svg></div>
+        <span class="nav-label">Modbus</span>
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/></svg></div>
+        <span class="nav-label">Config</span>
+      </div>
+    </div>
+    <div class="main">
+      <div class="filter-bar">
+        <span class="proto-badge tcp">TCP</span>
+        <span class="proto-badge udp">UDP</span>
+        <span class="proto-badge dns">DNS</span>
+        <span class="proto-badge http">HTTP</span>
+        <span class="proto-badge tls">TLS</span>
+        <span class="proto-badge icmp">ICMP</span>
+        <input class="filter-input" placeholder="ip.addr == 192.168.1.1 or port 443" />
+        <span class="live-badge"><span style="width:5px;height:5px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite"></span>REC</span>
+      </div>
+      <div class="table-wrap">
+        <table class="packet-table">
+          <thead>
+            <tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Len</th><th>Info</th></tr>
+          </thead>
+          <tbody>
+            <tr class="selected"><td class="no">1</td><td class="time">0.000000</td><td class="ip">192.168.1.100</td><td class="ip">8.8.8.8</td><td><span class="proto-pill DNS">DNS</span></td><td>64</td><td class="info">Standard query A api.openai.com</td></tr>
+            <tr><td class="no">2</td><td class="time">0.001234</td><td class="ip">8.8.8.8</td><td class="ip">192.168.1.100</td><td><span class="proto-pill DNS">DNS</span></td><td>128</td><td class="info">Standard response 104.18.7.192</td></tr>
+            <tr><td class="no">3</td><td class="time">0.001980</td><td class="ip">192.168.1.100</td><td class="ip">104.18.7.192</td><td><span class="proto-pill TCP">TCP</span></td><td>66</td><td class="info">SYN Seq=0 Win=65535</td></tr>
+            <tr><td class="no">4</td><td class="time">0.018442</td><td class="ip">104.18.7.192</td><td class="ip">192.168.1.100</td><td><span class="proto-pill TCP">TCP</span></td><td>66</td><td class="info">SYN-ACK Seq=0 Ack=1</td></tr>
+            <tr><td class="no">5</td><td class="time">0.019001</td><td class="ip">192.168.1.100</td><td class="ip">104.18.7.192</td><td><span class="proto-pill TLS">TLS</span></td><td>517</td><td class="info">Client Hello SNI=api.openai.com</td></tr>
+            <tr><td class="no">6</td><td class="time">0.038220</td><td class="ip">104.18.7.192</td><td class="ip">192.168.1.100</td><td><span class="proto-pill TLS">TLS</span></td><td>1460</td><td class="info">Server Hello, Certificate</td></tr>
+            <tr><td class="no">7</td><td class="time">0.039100</td><td class="ip">192.168.1.100</td><td class="ip">10.0.0.1</td><td><span class="proto-pill UDP">UDP</span></td><td>82</td><td class="info">Source port: 52341 → 53</td></tr>
+            <tr><td class="no">8</td><td class="time">0.041500</td><td class="ip">192.168.1.100</td><td class="ip">255.255.255.255</td><td><span class="proto-pill ARP">ARP</span></td><td>42</td><td class="info">Who has 192.168.1.1? Tell 192.168.1.100</td></tr>
+            <tr><td class="no">9</td><td class="time">0.042100</td><td class="ip">192.168.1.1</td><td class="ip">192.168.1.100</td><td><span class="proto-pill ARP">ARP</span></td><td>42</td><td class="info">192.168.1.1 is at aa:bb:cc:dd:ee:ff</td></tr>
+            <tr><td class="no">10</td><td class="time">0.055000</td><td class="ip">192.168.1.100</td><td class="ip">104.18.7.192</td><td><span class="proto-pill HTTP">HTTP</span></td><td>890</td><td class="info">POST /v1/chat/completions HTTP/2</td></tr>
+            <tr><td class="no">11</td><td class="time">0.312000</td><td class="ip">104.18.7.192</td><td class="ip">192.168.1.100</td><td><span class="proto-pill HTTP">HTTP</span></td><td>2048</td><td class="info">HTTP/2 200 OK (application/json)</td></tr>
+            <tr><td class="no">12</td><td class="time">0.313000</td><td class="ip">192.168.1.100</td><td class="ip">10.0.0.1</td><td><span class="proto-pill ICMP">ICMP</span></td><td>98</td><td class="info">Echo request id=0x001 seq=1/256 ttl=64</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="panel-header">Insights</div>
+      <div class="insight-card">
+        <div class="insight-title">DNS Resolution</div>
+        <div class="insight-meta">api.openai.com → 104.18.7.192</div>
+      </div>
+      <div class="insight-card warn">
+        <div class="insight-title">TLS Handshake</div>
+        <div class="insight-meta">Latency: 36.2ms ↑ high</div>
+      </div>
+      <div class="insight-card danger">
+        <div class="insight-title">Retransmissions</div>
+        <div class="insight-meta">12 TCP retrans detected</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">HTTP/2 Flow</div>
+        <div class="insight-meta">1 active stream · 2.9KB</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SCREEN 2: Chat -->
+<div class="screen" id="screen-chat">
+<div class="app">
+  <div class="header">
+    <span class="app-name">NETSCOPE</span>
+    <div class="header-sep"></div>
+    <span class="header-chip">ctx 2.1k / 8k</span>
+    <span class="header-chip model">qwen3:4b ▾</span>
+    <span style="color:#333;font-size:14px;cursor:pointer">⚙</span>
+  </div>
+  <div class="body">
+    <div class="icon-rail">
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="9" rx="1"/><line x1="5" y1="11" x2="5" y2="14"/><line x1="11" y1="11" x2="11" y2="14"/><line x1="3" y1="14" x2="13" y2="14"/></svg></div>
+        <span class="nav-label">Capture</span>
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><path d="M2 3h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 2V4a1 1 0 0 1 1-1z"/></svg></div>
+        <span class="nav-label">Chat</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><line x1="6" y1="4" x2="10" y2="4"/><line x1="4" y1="6" x2="8" y2="10"/><line x1="12" y1="6" x2="8" y2="10"/></svg></div>
+        <span class="nav-label">Topo</span>
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/></svg></div>
+        <span class="nav-label">Config</span>
+      </div>
+    </div>
+    <div class="main">
+      <div class="chat-wrap">
+        <div class="chat-model-bar">
+          <span>Model:</span>
+          <span class="model-name">qwen3:4b</span>
+          <span style="margin-left:auto">1,204 tokens used</span>
+        </div>
+        <div class="chat-messages">
+          <div class="msg user">
+            <div class="msg-bubble">Why is there so much DNS traffic on port 53 from 192.168.1.100?</div>
+          </div>
+          <div class="msg assistant">
+            <span class="msg-badge">NETWORK ANALYSIS</span>
+            <div class="msg-bubble">Looking at the captured packets, I can see <strong style="color:#e5e5e5">47 DNS queries</strong> from 192.168.1.100 in the last 60 seconds — about 3× the baseline average.<br><br>The queries are split:<br>• <span style="color:#a855f7">34 A records</span> (external APIs, CDNs)<br>• <span style="color:#a855f7">13 AAAA records</span> (IPv6 lookups)<br><br>Most queries target <code style="background:#0d0d0d;padding:1px 4px;border-radius:2px;font-size:10px">api.openai.com</code>, <code style="background:#0d0d0d;padding:1px 4px;border-radius:2px;font-size:10px">cdn.jsdelivr.net</code>. This pattern is consistent with a running LLM client or browser with many open tabs.</div>
+          </div>
+          <div class="msg user">
+            <div class="msg-bubble">Is the TLS latency of 36ms normal?</div>
+          </div>
+          <div class="msg assistant">
+            <span class="msg-badge">NETWORK ANALYSIS</span>
+            <div class="msg-bubble">36ms for TLS handshake to <code style="background:#0d0d0d;padding:1px 4px;border-radius:2px;font-size:10px">104.18.7.192</code> (Cloudflare) is <span style="color:#f59e0b">slightly elevated</span> — typical is 15–25ms on a clean connection.<br><br>Possible causes: TCP retransmissions I detected (12 total), or minor network congestion.</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" placeholder="Ask about packets, topology, or network issues..." rows="1"></textarea>
+          <button class="chat-send">Send ↑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SCREEN 3: Network Tools -->
+<div class="screen" id="screen-tools">
+<div class="app">
+  <div class="header">
+    <span class="app-name">NETSCOPE</span>
+    <div class="header-sep"></div>
+    <span class="header-chip">ctx 0.8k / 8k</span>
+    <span class="header-chip model">qwen3:4b ▾</span>
+  </div>
+  <div class="body">
+    <div class="icon-rail">
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="9" rx="1"/></svg></div>
+        <span class="nav-label">Capture</span>
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10"/></svg></div>
+        <span class="nav-label">Tools</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/></svg></div>
+        <span class="nav-label">Topo</span>
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/></svg></div>
+        <span class="nav-label">Config</span>
+      </div>
+    </div>
+    <div class="main">
+      <div class="tools-layout">
+        <div class="tool-list">
+          <div class="tool-item active">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12"/></svg>
+            Ping
+          </div>
+          <div class="tool-item">
+            <svg viewBox="0 0 16 16"><path d="M2 8h2l2-4 2 8 2-4 2 2h2"/></svg>
+            Traceroute
+          </div>
+          <div class="tool-item">
+            <svg viewBox="0 0 16 16"><path d="M2 4l5 4-5 4M9 12h5"/></svg>
+            ARP
+          </div>
+          <div class="tool-item">
+            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg>
+            Netstat
+          </div>
+          <div class="tool-item">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="5"/><line x1="8" y1="11" x2="8" y2="15"/></svg>
+            IPConfig
+          </div>
+        </div>
+        <div class="tool-main">
+          <div class="tool-input-bar">
+            <span style="font-size:10px;color:#555;font-family:monospace;flex-shrink:0">ping</span>
+            <input placeholder="8.8.8.8 or hostname" value="8.8.8.8" />
+            <span style="font-size:10px;color:#555;font-family:monospace;flex-shrink:0">-c</span>
+            <input style="width:40px" value="4" />
+            <button class="run-btn">▶ Run</button>
+          </div>
+          <div class="terminal">
+            <div class="term-line cmd">$ ping -c 4 8.8.8.8</div>
+            <div class="term-line muted">PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.</div>
+            <div class="term-line ok">64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=14.2 ms</div>
+            <div class="term-line ok">64 bytes from 8.8.8.8: icmp_seq=2 ttl=118 time=13.8 ms</div>
+            <div class="term-line ok">64 bytes from 8.8.8.8: icmp_seq=3 ttl=118 time=15.1 ms</div>
+            <div class="term-line ok">64 bytes from 8.8.8.8: icmp_seq=4 ttl=118 time=14.0 ms</div>
+            <br>
+            <div class="term-line muted">--- 8.8.8.8 ping statistics ---</div>
+            <div class="term-line data">4 packets transmitted, 4 received, 0% packet loss</div>
+            <div class="term-line data">rtt min/avg/max/mdev = 13.8/14.3/15.1/0.5 ms</div>
+            <br>
+            <div class="term-line muted" style="color:#22c55e33">▋</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SCREEN 4: Legacy sidebar -->
+<div class="screen" id="screen-sidebar">
+<div class="app">
+  <div class="header">
+    <span class="app-name">NETSCOPE</span>
+    <div class="status-dot"></div>
+    <span style="font-size:9px;color:#22c55e;font-weight:700;letter-spacing:1px">LIVE</span>
+    <div class="header-sep"></div>
+    <span class="header-chip">ctx 4.2k / 8k</span>
+    <span class="header-chip model">qwen3:4b ▾</span>
+    <span style="color:#333;font-size:14px;cursor:pointer">⚙</span>
+  </div>
+  <div class="body">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Capture</div>
+        <div class="sidebar-item active">
+          <svg viewBox="0 0 16 16" style="stroke:#3b82f6"><rect x="2" y="2" width="12" height="9" rx="1"/></svg>
+          Packets
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><path d="M2 3h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 2V4a1 1 0 0 1 1-1z"/></svg>
+          Chat
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Tools</div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+          Net Tools
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><path d="M8 2L14 8 8 14 2 8Z"/></svg>
+          Expert
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/></svg>
+          Traffic Map
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="1"/></svg>
+          Modbus
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">System</div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><path d="M3 8h10M8 3v10"/></svg>
+          Import PCAP
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><path d="M2 4h12v8H2z"/></svg>
+          Captures
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/></svg>
+          Status
+        </div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="filter-bar">
+        <span class="proto-badge tcp">TCP</span>
+        <span class="proto-badge dns">DNS</span>
+        <span class="proto-badge tls">TLS</span>
+        <input class="filter-input" placeholder="ip.addr == 192.168.1.1" />
+        <span class="live-badge"><span style="width:5px;height:5px;border-radius:50%;background:#22c55e;display:inline-block"></span>REC</span>
+      </div>
+      <div class="table-wrap">
+        <table class="packet-table">
+          <thead>
+            <tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Info</th></tr>
+          </thead>
+          <tbody>
+            <tr class="selected"><td class="no">1</td><td class="time">0.000000</td><td class="ip">192.168.1.100</td><td class="ip">8.8.8.8</td><td><span class="proto-pill DNS">DNS</span></td><td class="info">Standard query A api.openai.com</td></tr>
+            <tr><td class="no">2</td><td class="time">0.001234</td><td class="ip">8.8.8.8</td><td class="ip">192.168.1.100</td><td><span class="proto-pill DNS">DNS</span></td><td class="info">Standard response 104.18.7.192</td></tr>
+            <tr><td class="no">3</td><td class="time">0.001980</td><td class="ip">192.168.1.100</td><td class="ip">104.18.7.192</td><td><span class="proto-pill TCP">TCP</span></td><td class="info">SYN Seq=0 Win=65535</td></tr>
+            <tr><td class="no">4</td><td class="time">0.018442</td><td class="ip">104.18.7.192</td><td class="ip">192.168.1.100</td><td><span class="proto-pill TCP">TCP</span></td><td class="info">SYN-ACK Seq=0 Ack=1</td></tr>
+            <tr><td class="no">5</td><td class="time">0.019001</td><td class="ip">192.168.1.100</td><td class="ip">104.18.7.192</td><td><span class="proto-pill TLS">TLS</span></td><td class="info">Client Hello SNI=api.openai.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="panel-header">Insights</div>
+      <div class="insight-card"><div class="insight-title">DNS Resolution</div><div class="insight-meta">api.openai.com → 104.18.7.192</div></div>
+      <div class="insight-card warn"><div class="insight-title">TLS Latency</div><div class="insight-meta">36.2ms ↑ elevated</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<p class="note">Open <strong style="color:#3b82f6">http://localhost:58082</strong> in your browser if not visible · Click tabs above to switch screens</p>
+
+<script>
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('visible');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

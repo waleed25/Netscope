@@ -1,0 +1,29 @@
+[module]
+name = "llm-agent"
+version = "1.0.0"
+description = "LLM-powered chat agent with tool use"
+optional = true
+process = "engine"
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+ram_gb_min = 4
+gpu_modes = ["cuda", "cpu", "api"]
+
+[python]
+packages = ["openai>=1.0", "tiktoken", "httpx"]
+packages_gpu = ["torch"]
+process = "engine"
+
+[provides]
+tools = ["llm_chat", "llm_analyze", "llm_stream", "llm_status", "list_models", "token_usage"]
+ui = ["ChatBox", "LLMConfig", "TokenCounter", "ContextPie"]
+
+[provides.nav]
+right_panel_tab = "chat"
+
+[safety]
+max_permission = "read"
+audit_log = false

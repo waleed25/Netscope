@@ -1,0 +1,31 @@
+[module]
+name = "rag"
+version = "1.0.0"
+description = "Retrieval-augmented generation with document ingestion"
+optional = true
+process = "engine"
+requires_modules = ["llm-agent"]
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+ram_gb_min = 4
+disk_gb_min = 1.0
+gpu_modes = ["cuda", "cpu"]
+
+[python]
+packages = ["chromadb", "sentence-transformers", "rank-bm25"]
+process = "engine"
+
+[provides]
+tools = ["rag_search", "rag_ingest", "rag_status", "rag_crawl"]
+ui = ["RAGPanel", "DocumentUpload"]
+
+[provides.nav]
+sidebar_section = "System"
+sidebar_label = "Knowledge Base"
+
+[safety]
+max_permission = "write"
+audit_log = true

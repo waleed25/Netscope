@@ -1,0 +1,19 @@
+/* Trend chart series — stroke for SVG polyline, color for legend/chips */
+.chart-series-0 { stroke: rgb(var(--color-accent));   color: rgb(var(--color-accent)); }
+.chart-series-1 { stroke: #56d364;                    color: #56d364; }
+.chart-series-2 { stroke: #f78166;                    color: #f78166; }
+.chart-series-3 { stroke: #d2a8ff;                    color: #d2a8ff; }
+.chart-series-4 { stroke: #ffa657;                    color: #ffa657; }
+.chart-series-5 { stroke: #79c0ff;                    color: #79c0ff; }
+.chart-series-6 { stroke: #ff7b72;                    color: #ff7b72; }
+.chart-series-7 { stroke: #3fb950;                    color: #3fb950; }
+
+/* Chip background tints — ~16% opacity variant of each series color */
+.chart-chip-0 { background-color: rgba( 88, 166, 255, 0.16); }
+.chart-chip-1 { background-color: rgba( 86, 211, 100, 0.16); }
+.chart-chip-2 { background-color: rgba(247, 129, 102, 0.16); }
+.chart-chip-3 { background-color: rgba(210, 168, 255, 0.16); }
+.chart-chip-4 { background-color: rgba(255, 166,  87, 0.16); }
+.chart-chip-5 { background-color: rgba(121, 192, 255, 0.16); }
+.chart-chip-6 { background-color: rgba(255, 123, 114, 0.16); }
+.chart-chip-7 { background-color: rgba( 63, 185,  80, 0.16); }

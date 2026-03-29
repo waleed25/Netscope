@@ -1,0 +1,260 @@
+<h2>God's View — Register Grid Left, Diagnostics Right</h2>
+<p class="subtitle">Live registers (ModScan) left · RTT + exceptions + transaction log right</p>
+
+<div class="mockup">
+  <div class="mockup-header">ModbusPanel → Diagnostics Tab</div>
+  <div class="mockup-body" style="font-family:monospace;font-size:10px;background:#0d1117;padding:10px;display:flex;gap:8px;min-height:480px">
+
+    <!-- LEFT: ModScan Register Grid -->
+    <div style="width:240px;flex-shrink:0;background:#161b22;border:1px solid #30363d;border-radius:4px;overflow:hidden;display:flex;flex-direction:column">
+
+      <!-- Header -->
+      <div style="background:#0d1117;padding:5px 8px;border-bottom:1px solid #30363d">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="color:#c9d1d9;font-size:9px;font-weight:bold">Live Registers</div>
+          <div style="color:#58a6ff;font-size:8px">sim-001 · UID 1 ▾</div>
+        </div>
+        <div style="display:flex;gap:2px">
+          <div style="background:#1f6feb33;border:1px solid #1f6feb;color:#58a6ff;font-size:7px;padding:1px 5px;border-radius:3px">HR (FC03)</div>
+          <div style="background:#21262d;color:#8b949e;font-size:7px;padding:1px 5px;border-radius:3px">IR (FC04)</div>
+          <div style="background:#21262d;color:#8b949e;font-size:7px;padding:1px 5px;border-radius:3px">Coils</div>
+          <div style="background:#21262d;color:#8b949e;font-size:7px;padding:1px 5px;border-radius:3px">DI</div>
+        </div>
+      </div>
+
+      <!-- Column headers -->
+      <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#0d1117;padding:3px 6px;gap:3px;border-bottom:1px solid #21262d;font-size:7px">
+        <div style="color:#8b949e">Addr</div>
+        <div style="color:#8b949e">Raw</div>
+        <div style="color:#8b949e">Eng Val</div>
+        <div style="color:#8b949e">Unit</div>
+        <div style="color:#8b949e">Δ</div>
+      </div>
+
+      <!-- Register rows -->
+      <div style="flex:1;overflow-y:auto">
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#1a2535;padding:2px 6px;gap:3px;border-left:2px solid #388bfd">
+          <div style="color:#58a6ff;font-size:8px">40001</div>
+          <div style="background:#0d1117;border:1px solid #388bfd;color:#58a6ff;font-size:7px;padding:1px 3px;border-radius:2px">2304</div>
+          <div style="color:#c8d8f0;font-size:8px">230.4</div>
+          <div style="color:#8b949e;font-size:7px">V</div>
+          <div style="color:#3fb950;font-size:7px">+0.3</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;padding:2px 6px;gap:3px;background:#1a1a0a">
+          <div style="color:#c8d8f0;font-size:8px">40002</div>
+          <div style="color:#e3b341;font-size:8px">152 ▲</div>
+          <div style="color:#e3b341;font-size:8px">15.2</div>
+          <div style="color:#8b949e;font-size:7px">A</div>
+          <div style="color:#f78166;font-size:7px">-0.4</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40003</div>
+          <div style="color:#c8d8f0;font-size:8px">35210</div>
+          <div style="color:#c8d8f0;font-size:8px">3521.0</div>
+          <div style="color:#8b949e;font-size:7px">W</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40004</div>
+          <div style="color:#c8d8f0;font-size:8px">5000</div>
+          <div style="color:#c8d8f0;font-size:8px">50.0</div>
+          <div style="color:#8b949e;font-size:7px">Hz</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40005</div>
+          <div style="color:#3fb950;font-size:8px">1284 ▲</div>
+          <div style="color:#3fb950;font-size:8px">128.4</div>
+          <div style="color:#8b949e;font-size:7px">kWh</div>
+          <div style="color:#3fb950;font-size:7px">+1</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40006</div>
+          <div style="color:#c8d8f0;font-size:8px">25</div>
+          <div style="color:#c8d8f0;font-size:8px">25.0</div>
+          <div style="color:#8b949e;font-size:7px">°C</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40007</div>
+          <div style="color:#c8d8f0;font-size:8px">4</div>
+          <div style="color:#d2a8ff;font-size:8px">MPPT</div>
+          <div style="color:#8b949e;font-size:7px">status</div>
+          <div style="color:#8b949e;font-size:7px">—</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40008</div>
+          <div style="color:#c8d8f0;font-size:8px">800</div>
+          <div style="color:#c8d8f0;font-size:8px">400.0</div>
+          <div style="color:#8b949e;font-size:7px">V DC</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40009</div>
+          <div style="color:#c8d8f0;font-size:8px">88</div>
+          <div style="color:#c8d8f0;font-size:8px">8.8</div>
+          <div style="color:#8b949e;font-size:7px">A DC</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+        <div style="display:grid;grid-template-columns:42px 55px 45px 30px 28px;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:8px">40010</div>
+          <div style="color:#c8d8f0;font-size:8px">3521</div>
+          <div style="color:#c8d8f0;font-size:8px">3521</div>
+          <div style="color:#8b949e;font-size:7px">W DC</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+      </div>
+
+      <!-- Write bar -->
+      <div style="background:#0d1117;border-top:1px solid #30363d;padding:5px 6px">
+        <div style="color:#8b949e;font-size:7px;margin-bottom:3px">Write register</div>
+        <div style="display:flex;gap:3px">
+          <input style="width:42px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;font-size:8px;padding:2px 4px;border-radius:3px;font-family:monospace" placeholder="addr" value="40001" readonly />
+          <input style="flex:1;background:#161b22;border:1px solid #30363d;color:#c9d1d9;font-size:8px;padding:2px 4px;border-radius:3px;font-family:monospace" placeholder="value" value="231" readonly />
+          <select style="background:#161b22;border:1px solid #30363d;color:#8b949e;font-size:7px;padding:2px;border-radius:3px">
+            <option>FC06</option>
+          </select>
+          <div style="background:#1f6feb;color:#fff;font-size:8px;padding:2px 7px;border-radius:3px">Write</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Diagnostics column -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+
+      <!-- KPI bar -->
+      <div style="display:flex;gap:4px">
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 8px;flex:1;text-align:center">
+          <div style="color:#58a6ff;font-size:12px;font-weight:bold">12ms</div>
+          <div style="color:#8b949e;font-size:8px">Avg RTT</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 8px;flex:1;text-align:center">
+          <div style="color:#58a6ff;font-size:9px">9 · 34 · 67ms</div>
+          <div style="color:#8b949e;font-size:8px">p50 · p95 · p99</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 8px;flex:1;text-align:center">
+          <div style="color:#f78166;font-size:12px;font-weight:bold">17</div>
+          <div style="color:#8b949e;font-size:8px">Exceptions</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 8px;flex:1;text-align:center">
+          <div style="color:#d2a8ff;font-size:12px;font-weight:bold">1.2/s</div>
+          <div style="color:#8b949e;font-size:8px">Req Rate</div>
+        </div>
+      </div>
+
+      <!-- RTT Timeline -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <div style="color:#58a6ff;font-size:9px">RTT Timeline</div>
+          <div style="color:#8b949e;font-size:8px">▐ red = exception</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:36px">
+          <div style="background:#1f6feb;width:10px;height:10px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:14px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:20px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#da3633;width:10px;height:36px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:22px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:16px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:12px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:18px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:24px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#da3633;width:10px;height:28px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:14px;border-radius:1px 1px 0 0"></div>
+          <div style="background:#1f6feb;width:10px;height:10px;border-radius:1px 1px 0 0"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:#8b949e;font-size:7px;margin-top:2px">
+          <span>14:20:00</span><span>14:21:00</span><span>now</span>
+        </div>
+      </div>
+
+      <!-- Exception frequency -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+        <div style="color:#f78166;font-size:9px;margin-bottom:5px">⚠ Exception Frequency</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <div style="width:65px;color:#8b949e;font-size:8px">EC02 Illegal Addr</div>
+          <div style="flex:1;background:#21262d;border-radius:2px;height:7px"><div style="background:#f78166;width:80%;height:7px;border-radius:2px"></div></div>
+          <div style="color:#f78166;font-size:8px;width:18px;text-align:right">12</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <div style="width:65px;color:#8b949e;font-size:8px">EC06 Device Busy</div>
+          <div style="flex:1;background:#21262d;border-radius:2px;height:7px"><div style="background:#e3b341;width:27%;height:7px;border-radius:2px"></div></div>
+          <div style="color:#e3b341;font-size:8px;width:18px;text-align:right">4</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div style="width:65px;color:#8b949e;font-size:8px">EC04 Device Fail</div>
+          <div style="flex:1;background:#21262d;border-radius:2px;height:7px"><div style="background:#8b949e;width:7%;height:7px;border-radius:2px"></div></div>
+          <div style="color:#8b949e;font-size:8px;width:18px;text-align:right">1</div>
+        </div>
+      </div>
+
+      <!-- Transaction log -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;overflow:hidden;flex:1">
+        <div style="background:#0d1117;padding:4px 8px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center">
+          <div style="color:#c9d1d9;font-size:9px">Transaction Log</div>
+          <div style="display:flex;gap:4px">
+            <span style="background:#21262d;color:#8b949e;font-size:7px;padding:1px 5px;border-radius:3px">Pause</span>
+            <span style="background:#21262d;color:#8b949e;font-size:7px;padding:1px 5px;border-radius:3px">CSV</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:28px 52px 45px 1fr 32px 32px;background:#0d1117;padding:3px 6px;gap:3px;border-bottom:1px solid #21262d">
+          <div style="color:#8b949e;font-size:7px">#</div>
+          <div style="color:#8b949e;font-size:7px">Time</div>
+          <div style="color:#8b949e;font-size:7px">FC</div>
+          <div style="color:#8b949e;font-size:7px">Addr / Response</div>
+          <div style="color:#8b949e;font-size:7px">St</div>
+          <div style="color:#8b949e;font-size:7px">RTT</div>
+        </div>
+        <div style="display:grid;grid-template-columns:28px 52px 45px 1fr 32px 32px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#c8d8f0;font-size:7px">1284</div>
+          <div style="color:#c8d8f0;font-size:7px">14:22:03</div>
+          <div style="color:#c8d8f0;font-size:7px">FC03 HR</div>
+          <div style="color:#c8d8f0;font-size:7px">40001×10 → [2304,152,…]</div>
+          <div style="color:#3fb950;font-size:7px">OK</div>
+          <div style="color:#c8d8f0;font-size:7px">11ms</div>
+        </div>
+        <div style="display:grid;grid-template-columns:28px 52px 45px 1fr 32px 32px;background:#2d1515;padding:2px 6px;gap:3px">
+          <div style="color:#f4b8b8;font-size:7px">1283</div>
+          <div style="color:#f4b8b8;font-size:7px">14:22:02</div>
+          <div style="color:#f4b8b8;font-size:7px">FC03 HR</div>
+          <div style="color:#f4b8b8;font-size:7px">40100×1 → EC02 Illegal Addr</div>
+          <div style="color:#f78166;font-size:7px">EC02</div>
+          <div style="color:#f4b8b8;font-size:7px">8ms</div>
+        </div>
+        <div style="display:grid;grid-template-columns:28px 52px 45px 1fr 32px 32px;background:#162030;padding:2px 6px;gap:3px">
+          <div style="color:#b8d8e8;font-size:7px">1282</div>
+          <div style="color:#b8d8e8;font-size:7px">14:22:01</div>
+          <div style="color:#b8d8e8;font-size:7px">FC06 Wr</div>
+          <div style="color:#b8d8e8;font-size:7px">40010 ← 230 (setpoint)</div>
+          <div style="color:#3fb950;font-size:7px">OK</div>
+          <div style="color:#b8d8e8;font-size:7px">9ms</div>
+        </div>
+        <div style="display:grid;grid-template-columns:28px 52px 45px 1fr 32px 32px;background:#1a2535;padding:2px 6px;gap:3px">
+          <div style="color:#d2a8ff;font-size:7px">1281</div>
+          <div style="color:#d2a8ff;font-size:7px">14:21:59</div>
+          <div style="color:#d2a8ff;font-size:7px">FC43/14</div>
+          <div style="color:#d2a8ff;font-size:7px">SMA Solar · Sunny Boy 5.0 · v3.12</div>
+          <div style="color:#3fb950;font-size:7px">OK</div>
+          <div style="color:#d2a8ff;font-size:7px">14ms</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="options" style="margin-top:16px">
+  <div class="option" data-choice="approved" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Approved</h3>
+      <p>This is the layout — proceed to Section 4 (LLM tools)</p>
+    </div>
+  </div>
+  <div class="option" data-choice="adjust" onclick="toggleSelect(this)">
+    <div class="letter">✏</div>
+    <div class="content">
+      <h3>Adjust</h3>
+      <p>Describe the change in terminal</p>
+    </div>
+  </div>
+</div>

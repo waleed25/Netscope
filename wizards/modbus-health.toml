@@ -1,0 +1,18 @@
+[wizard]
+name = "modbus-health"
+title = "Modbus Health Check"
+description = "Scan, read, and AI-analyze Modbus devices on the network"
+requires = ["modbus", "llm-agent"]
+
+[[steps]]
+id = "scan"
+title = "Discover Modbus devices"
+tool = "modbus_scan"
+args = {}
+
+[[steps]]
+id = "analyze"
+title = "AI health analysis"
+tool = "llm_analyze"
+prompt = "Analyze the following Modbus scan results and identify any devices that may need attention: $scan"
+depends_on = "scan"

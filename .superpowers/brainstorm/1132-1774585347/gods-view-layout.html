@@ -1,0 +1,197 @@
+<h2>God's View — Layout Options</h2>
+<p class="subtitle">Pick the layout for the new Diagnostics tab in ModbusPanel</p>
+
+<div class="cards">
+
+  <!-- Option A: Dashboard Grid -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:11px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+          <div style="color:#58a6ff;font-size:10px;margin-bottom:4px">▲ RTT HISTOGRAM</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:32px">
+            <div style="background:#1f6feb;width:8px;height:10px"></div>
+            <div style="background:#1f6feb;width:8px;height:20px"></div>
+            <div style="background:#1f6feb;width:8px;height:32px"></div>
+            <div style="background:#1f6feb;width:8px;height:28px"></div>
+            <div style="background:#1f6feb;width:8px;height:18px"></div>
+            <div style="background:#1f6feb;width:8px;height:8px"></div>
+          </div>
+          <div style="color:#8b949e;font-size:9px;margin-top:3px">p50: 12ms · p95: 34ms · p99: 67ms</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+          <div style="color:#f78166;font-size:10px;margin-bottom:4px">⚠ EXCEPTION FREQUENCY</div>
+          <div style="color:#8b949e;font-size:9px">EC02 Illegal Addr ·····  12</div>
+          <div style="color:#8b949e;font-size:9px">EC06 Device Busy ····    4</div>
+          <div style="color:#8b949e;font-size:9px">EC04 Device Fail ·       1</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+          <div style="color:#3fb950;font-size:10px;margin-bottom:4px">◈ REGISTER HEATMAP</div>
+          <div style="display:flex;gap:2px;flex-wrap:wrap">
+            <div style="width:10px;height:10px;background:#0e4429;border-radius:1px" title="40001"></div>
+            <div style="width:10px;height:10px;background:#006d32;border-radius:1px" title="40002"></div>
+            <div style="width:10px;height:10px;background:#26a641;border-radius:1px" title="40003"></div>
+            <div style="width:10px;height:10px;background:#39d353;border-radius:1px" title="40004"></div>
+            <div style="width:10px;height:10px;background:#0e4429;border-radius:1px"></div>
+            <div style="width:10px;height:10px;background:#006d32;border-radius:1px"></div>
+            <div style="width:10px;height:10px;background:#0e4429;border-radius:1px"></div>
+            <div style="width:10px;height:10px;background:#39d353;border-radius:1px"></div>
+            <div style="width:10px;height:10px;background:#26a641;border-radius:1px"></div>
+          </div>
+          <div style="color:#8b949e;font-size:9px;margin-top:3px">Access frequency per address</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+          <div style="color:#d2a8ff;font-size:10px;margin-bottom:4px">⟳ TRAFFIC TIMELINE</div>
+          <div style="display:flex;align-items:flex-end;gap:1px;height:24px">
+            <div style="background:#8957e5;width:6px;height:10px"></div>
+            <div style="background:#8957e5;width:6px;height:14px"></div>
+            <div style="background:#8957e5;width:6px;height:20px"></div>
+            <div style="background:#8957e5;width:6px;height:24px"></div>
+            <div style="background:#da3633;width:6px;height:18px"></div>
+            <div style="background:#8957e5;width:6px;height:12px"></div>
+            <div style="background:#8957e5;width:6px;height:16px"></div>
+          </div>
+          <div style="color:#8b949e;font-size:9px;margin-top:3px">Requests/sec · red=exception</div>
+        </div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;margin-top:6px">
+        <div style="color:#e3b341;font-size:10px;margin-bottom:4px">△ REGISTER CHANGE LOG</div>
+        <div style="color:#8b949e;font-size:9px">14:22:01 · addr 40001 · 230.4 → 231.1 · Δ+0.7 V</div>
+        <div style="color:#8b949e;font-size:9px">14:22:06 · addr 40003 · 15.2 → 14.8 · Δ-0.4 A</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Dashboard Grid</h3>
+      <p>2×2 cards (RTT histogram, exceptions, register heatmap, traffic timeline) + change log. Everything visible at once. Best for monitoring.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Session-Focused -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:11px">
+      <div style="display:flex;gap:6px">
+        <div style="width:90px;background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;flex-shrink:0">
+          <div style="color:#58a6ff;font-size:9px;margin-bottom:6px">SESSIONS</div>
+          <div style="background:#1f6feb33;border-left:2px solid #1f6feb;padding:4px 6px;border-radius:2px;margin-bottom:4px">
+            <div style="color:#c9d1d9;font-size:9px">sim-001</div>
+            <div style="color:#8b949e;font-size:8px">SMA · :502</div>
+          </div>
+          <div style="padding:4px 6px;margin-bottom:4px">
+            <div style="color:#8b949e;font-size:9px">client-001</div>
+            <div style="color:#8b949e;font-size:8px">192.168.1.10</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px">
+            <div style="color:#58a6ff;font-size:10px;margin-bottom:3px">RTT — sim-001</div>
+            <div style="display:flex;align-items:flex-end;gap:2px;height:24px">
+              <div style="background:#1f6feb;width:8px;height:8px"></div>
+              <div style="background:#1f6feb;width:8px;height:16px"></div>
+              <div style="background:#1f6feb;width:8px;height:24px"></div>
+              <div style="background:#da3633;width:8px;height:20px"></div>
+              <div style="background:#1f6feb;width:8px;height:12px"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:6px">
+              <div style="color:#f78166;font-size:9px">Exceptions: 3</div>
+              <div style="color:#8b949e;font-size:8px">EC02×2, EC06×1</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:6px">
+              <div style="color:#3fb950;font-size:9px">Polls: 142</div>
+              <div style="color:#8b949e;font-size:8px">1.2 req/s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:6px;margin-top:6px">
+        <div style="color:#e3b341;font-size:9px">14:22:01  40001  230.4→231.1  +0.7V  FC03</div>
+        <div style="color:#e3b341;font-size:9px">14:22:06  40003  15.2→14.8   -0.4A  FC03</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Session-Focused</h3>
+      <p>Session list on left, per-session diagnostics on right. Best when monitoring many devices simultaneously — click to switch sessions.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Wireshark-Style -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:11px">
+      <!-- KPI Bar -->
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 10px;flex:1;text-align:center">
+          <div style="color:#58a6ff;font-size:11px;font-weight:bold">12ms</div>
+          <div style="color:#8b949e;font-size:8px">Avg RTT</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 10px;flex:1;text-align:center">
+          <div style="color:#f78166;font-size:11px;font-weight:bold">17</div>
+          <div style="color:#8b949e;font-size:8px">Exceptions</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 10px;flex:1;text-align:center">
+          <div style="color:#3fb950;font-size:11px;font-weight:bold">4</div>
+          <div style="color:#8b949e;font-size:8px">Sessions</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:5px 10px;flex:1;text-align:center">
+          <div style="color:#d2a8ff;font-size:11px;font-weight:bold">1.2/s</div>
+          <div style="color:#8b949e;font-size:8px">Req Rate</div>
+        </div>
+      </div>
+      <!-- RTT Timeline -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;margin-bottom:6px">
+        <div style="color:#58a6ff;font-size:10px;margin-bottom:4px">RTT timeline — all sessions</div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:28px">
+          <div style="background:#1f6feb;width:10px;height:8px"></div>
+          <div style="background:#1f6feb;width:10px;height:12px"></div>
+          <div style="background:#1f6feb;width:10px;height:20px"></div>
+          <div style="background:#da3633;width:10px;height:28px"></div>
+          <div style="background:#1f6feb;width:10px;height:22px"></div>
+          <div style="background:#1f6feb;width:10px;height:14px"></div>
+          <div style="background:#1f6feb;width:10px;height:10px"></div>
+          <div style="background:#1f6feb;width:10px;height:16px"></div>
+        </div>
+        <div style="color:#8b949e;font-size:8px;margin-top:2px">Red spike = exception occurred</div>
+      </div>
+      <!-- Transaction Table -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:30px 55px 90px 1fr 35px 35px;background:#0d1117;padding:3px 6px;gap:4px">
+          <div style="color:#8b949e;font-size:8px">#</div>
+          <div style="color:#8b949e;font-size:8px">Time</div>
+          <div style="color:#8b949e;font-size:8px">Session</div>
+          <div style="color:#8b949e;font-size:8px">Request</div>
+          <div style="color:#8b949e;font-size:8px">Rsp</div>
+          <div style="color:#8b949e;font-size:8px">RTT</div>
+        </div>
+        <div style="display:grid;grid-template-columns:30px 55px 90px 1fr 35px 35px;background:#1a2535;padding:3px 6px;gap:4px">
+          <div style="color:#c8d8f0;font-size:8px">142</div>
+          <div style="color:#c8d8f0;font-size:8px">14:22:01</div>
+          <div style="color:#c8d8f0;font-size:8px">sim-001</div>
+          <div style="color:#c8d8f0;font-size:8px">FC03 40001×10</div>
+          <div style="color:#3fb950;font-size:8px">OK</div>
+          <div style="color:#c8d8f0;font-size:8px">11ms</div>
+        </div>
+        <div style="display:grid;grid-template-columns:30px 55px 90px 1fr 35px 35px;background:#2d1515;padding:3px 6px;gap:4px">
+          <div style="color:#f4b8b8;font-size:8px">143</div>
+          <div style="color:#f4b8b8;font-size:8px">14:22:02</div>
+          <div style="color:#f4b8b8;font-size:8px">client-001</div>
+          <div style="color:#f4b8b8;font-size:8px">FC03 40100×1</div>
+          <div style="color:#f78166;font-size:8px">EC02</div>
+          <div style="color:#f4b8b8;font-size:8px">8ms</div>
+        </div>
+        <div style="display:grid;grid-template-columns:30px 55px 90px 1fr 35px 35px;background:#1a2535;padding:3px 6px;gap:4px">
+          <div style="color:#c8d8f0;font-size:8px">144</div>
+          <div style="color:#c8d8f0;font-size:8px">14:22:03</div>
+          <div style="color:#c8d8f0;font-size:8px">sim-001</div>
+          <div style="color:#c8d8f0;font-size:8px">FC06 40010 → 230</div>
+          <div style="color:#3fb950;font-size:8px">OK</div>
+          <div style="color:#c8d8f0;font-size:8px">9ms</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Wireshark-Style</h3>
+      <p>KPI bar at top, full-width RTT timeline, live Modbus transaction table. Every request visible with FC, address, response, and RTT. Most detailed.</p>
+    </div>
+  </div>
+
+</div>

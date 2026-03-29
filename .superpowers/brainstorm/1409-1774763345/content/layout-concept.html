@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetScope — Design Direction</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0b;
+    color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 40px 32px;
+  }
+
+  h1 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4a5568;
+    margin-bottom: 32px;
+  }
+
+  /* ─── SECTION ─────────────────────────────────────────── */
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #4a5568;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* ─── SPLIT COMPARE ──────────────────────────────────── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .compare-pane {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .compare-pane-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4a5568;
+    padding: 10px 14px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .compare-pane-label .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .badge-before { background: #2b0e0e; color: #f85149; }
+  .badge-after  { background: #0d2b1a; color: #3fb950; }
+
+  /* ─── LAYOUT WIREFRAME ──────────────────────────────── */
+  .wireframe {
+    display: flex;
+    height: 320px;
+    font-size: 11px;
+  }
+
+  /* BEFORE */
+  .wf-sidebar-before {
+    width: 190px;
+    background: #161b22;
+    border-right: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .wf-sidebar-before .logo-row {
+    padding: 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .wf-sidebar-before .logo-name { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+  .wf-sidebar-before .logo-sub  { font-size: 9px; letter-spacing: 0.1em; color: #4a5568; }
+
+  .section-hdr {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #30363d;
+    padding: 10px 12px 4px;
+    text-transform: uppercase;
+  }
+  .wf-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    color: #8b949e;
+    font-size: 11px;
+    cursor: default;
+  }
+  .wf-tab.active { color: #58a6ff; background: #0d1f3c; }
+  .wf-tab .dot { width: 14px; height: 14px; background: #30363d; border-radius: 3px; flex-shrink: 0; }
+  .wf-tab.active .dot { background: #58a6ff; opacity: 0.4; }
+
+  /* BEFORE — main + right */
+  .wf-main-before {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .wf-topbar {
+    height: 40px;
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .wf-topbar-chip {
+    background: #21262d;
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
+    color: #8b949e;
+    white-space: nowrap;
+  }
+  .wf-topbar-chip.many { color: #4a5568; }
+  .wf-content {
+    flex: 1;
+    background: #0d1117;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #30363d;
+    font-size: 11px;
+    text-align: center;
+  }
+  .wf-right {
+    width: 280px;
+    background: #161b22;
+    border-left: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .wf-right-tabs {
+    display: flex;
+    border-bottom: 1px solid #21262d;
+    padding: 0 8px;
+  }
+  .wf-right-tab {
+    padding: 8px 10px;
+    font-size: 10px;
+    color: #4a5568;
+    border-bottom: 2px solid transparent;
+  }
+  .wf-right-tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+  .wf-right-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #30363d;
+    text-align: center;
+    padding: 12px;
+  }
+  .wf-right-input {
+    height: 40px;
+    border-top: 1px solid #21262d;
+    background: #0d1117;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    font-size: 10px;
+    color: #30363d;
+  }
+  .wf-input-bar {
+    flex: 1;
+    height: 24px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+  }
+  .wf-send { width: 24px; height: 24px; background: #1f6feb; border-radius: 4px; }
+
+  /* AFTER — sidebar 48px */
+  .wf-sidebar-after {
+    width: 48px;
+    background: #0d1117;
+    border-right: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .wf-icon {
+    width: 36px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wf-icon .icon-dot { width: 16px; height: 16px; background: #30363d; border-radius: 3px; }
+  .wf-icon.active {
+    background: #0d1f3c;
+    box-shadow: inset -2px 0 0 #58a6ff;
+  }
+  .wf-icon.active .icon-dot { background: #58a6ff; opacity: 0.5; }
+  .wf-icon-spacer { flex: 1; }
+
+  /* AFTER — no topbar, no right panel */
+  .wf-main-after {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .wf-drag-strip {
+    height: 32px;
+    background: #0d1117;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+  .wf-tab-strip {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #21262d;
+    padding: 0 16px;
+    background: #0d1117;
+    flex-shrink: 0;
+  }
+  .wf-tab-item {
+    padding: 8px 14px;
+    font-size: 11px;
+    color: #4a5568;
+    border-bottom: 2px solid transparent;
+    cursor: default;
+  }
+  .wf-tab-item.active { color: #e2e8f0; border-bottom-color: #58a6ff; }
+
+  /* ─── NAV COMPARISON ───────────────────────────────── */
+  .nav-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 8px;
+    gap: 2px;
+  }
+  .nav-section-hdr {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #30363d;
+    padding: 8px 8px 2px;
+    text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #8b949e;
+  }
+  .nav-item.active { background: #0d1f3c; color: #58a6ff; }
+  .nav-item .nav-dot { width: 14px; height: 14px; background: #30363d; border-radius: 3px; flex-shrink: 0; }
+  .nav-item.active .nav-dot { background: #58a6ff; opacity: 0.3; }
+  .nav-item.strike { text-decoration: line-through; color: #30363d; font-style: italic; }
+  .nav-item.strike .nav-dot { background: #2b0e0e; }
+  .nav-item.merged { color: #4a5568; font-style: italic; }
+  .nav-item.new-item { color: #3fb950; }
+  .nav-item.new-item .nav-dot { background: #3fb950; opacity: 0.3; }
+
+  .change-tag {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tag-cut     { background: #2b0e0e; color: #f85149; }
+  .tag-merge   { background: #1b1030; color: #a371f7; }
+  .tag-new     { background: #0d2b1a; color: #3fb950; }
+  .tag-moved   { background: #2b1f07; color: #d29922; }
+
+  /* ─── COLOR PALETTE ──────────────────────────────── */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .swatch {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #21262d;
+  }
+  .swatch-color {
+    height: 56px;
+  }
+  .swatch-meta {
+    padding: 8px 10px;
+    background: #0d1117;
+  }
+  .swatch-name {
+    font-size: 10px;
+    font-weight: 500;
+    color: #8b949e;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .swatch-hex {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    color: #4a5568;
+    letter-spacing: 0.03em;
+  }
+
+  /* ─── KEY PRINCIPLE CARDS ────────────────────────── */
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .principle-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .principle-number {
+    font-size: 32px;
+    font-weight: 200;
+    color: #21262d;
+    line-height: 1;
+    margin-bottom: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, serif;
+  }
+  .principle-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+  }
+  .principle-body {
+    font-size: 12px;
+    color: #4a5568;
+    line-height: 1.6;
+  }
+
+  /* ─── CAPTURE MOCKUP ─────────────────────────────── */
+  .capture-mock {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+  .capture-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px;
+  }
+  .capture-hero-text {
+    font-size: 20px;
+    font-weight: 200;
+    color: rgba(226, 232, 240, 0.15);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .capture-interface-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .capture-select {
+    width: 240px;
+    height: 34px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .capture-select-chevron { color: #30363d; font-size: 10px; }
+  .capture-btn-primary {
+    height: 34px;
+    padding: 0 16px;
+    background: #58a6ff;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0a0a0b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .capture-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #30363d;
+    font-size: 11px;
+  }
+  .capture-divider::before,
+  .capture-divider::after {
+    content: '';
+    width: 60px;
+    height: 1px;
+    background: #21262d;
+  }
+  .capture-btn-ghost {
+    font-size: 13px;
+    color: #4a5568;
+    cursor: pointer;
+    padding: 4px 0;
+    border-bottom: 1px solid #30363d;
+  }
+
+  /* active state capture */
+  .capture-strip {
+    height: 40px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    background: #0d1117;
+    flex-shrink: 0;
+  }
+  .capture-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f85149;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .capture-meta {
+    font-size: 12px;
+    color: #8b949e;
+    display: flex;
+    gap: 16px;
+  }
+  .capture-meta span { display: flex; align-items: center; gap: 6px; }
+  .capture-meta .label { color: #4a5568; font-size: 11px; }
+  .capture-stop { margin-left: auto; font-size: 12px; color: #f85149; cursor: pointer; }
+  .capture-table-header {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 12px;
+    gap: 0;
+    border-bottom: 1px solid #21262d;
+    background: #0d1117;
+  }
+  .th {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #30363d;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .th-num  { width: 40px; }
+  .th-time { width: 72px; }
+  .th-src  { width: 140px; }
+  .th-dst  { width: 140px; }
+  .th-proto{ width: 72px; }
+  .th-len  { width: 56px; }
+  .th-info { flex: 1; }
+
+  .capture-table-rows {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .tr {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(33, 38, 45, 0.6);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  .tr:hover { background: #161b22; }
+  .tr.selected { background: #161b22; box-shadow: inset 2px 0 0 #58a6ff; }
+  .td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .td-num   { width: 40px; color: #30363d; font-size: 11px; }
+  .td-time  { width: 72px; color: #4a5568; }
+  .td-src   { width: 140px; color: #8b949e; }
+  .td-dst   { width: 140px; color: #8b949e; }
+  .td-proto { width: 72px; }
+  .td-len   { width: 56px; color: #4a5568; }
+  .td-info  { flex: 1; color: #c9d1d9; }
+  .proto-badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .proto-tcp   { color: #79b8ff; background: rgba(31, 111, 235, 0.15); }
+  .proto-dns   { color: #c9a0ff; background: rgba(163, 113, 247, 0.15); }
+  .proto-http  { color: #56d364; background: rgba(63, 185, 80, 0.15); }
+  .proto-arp   { color: #e3b341; background: rgba(210, 153, 34, 0.15); }
+  .proto-tls   { color: #58a6ff; background: rgba(88, 166, 255, 0.15); }
+
+  /* ─── STATUS MOCKUP ──────────────────────────────── */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .status-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .status-card-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .health-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .health-ok   { background: #3fb950; }
+  .health-err  { background: #f85149; }
+  .health-warn { background: #d29922; }
+  .status-service { font-size: 13px; font-weight: 500; color: #e2e8f0; }
+  .status-detail  { font-size: 11px; color: #4a5568; font-family: 'JetBrains Mono', monospace; }
+
+  .metrics-row {
+    display: flex;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .metric-cell {
+    flex: 1;
+    padding: 14px 16px;
+    border-right: 1px solid #21262d;
+  }
+  .metric-cell:last-child { border-right: none; }
+  .metric-value { font-size: 20px; font-weight: 600; color: #c9d1d9; line-height: 1; margin-bottom: 4px; }
+  .metric-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4a5568;
+  }
+</style>
+</head>
+<body>
+
+<h1>NetScope · UI Redesign Direction · Jony Ive Philosophy</h1>
+
+<!-- ─── PRINCIPLES ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Design Principles</div>
+  <div class="principles">
+    <div class="principle-card">
+      <div class="principle-number">01</div>
+      <div class="principle-title">Reduce to essence</div>
+      <div class="principle-body">Remove the AI chat panel from permanent view. Eliminate the header bar entirely. Cut 4 nav items. Every pixel earns its place or it goes.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-number">02</div>
+      <div class="principle-title">Function defines form</div>
+      <div class="principle-body">Capture → Analyze → Act is the workflow. The UI should make this sequence obvious without instructions. Navigation reveals hierarchy.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-number">03</div>
+      <div class="principle-title">Silence is structure</div>
+      <div class="principle-body">A 48px icon sidebar with no labels. No header bar. No section headers. Spacing and restraint do the work that labels and dividers used to do.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LAYOUT COMPARISON ────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Shell Layout — Before vs After</div>
+  <div class="compare">
+
+    <!-- BEFORE -->
+    <div class="compare-pane">
+      <div class="compare-pane-label">
+        <span class="badge badge-before">Before</span>
+        190px sidebar · header bar · permanent chat panel
+      </div>
+      <div class="wireframe">
+        <div class="wf-sidebar-before">
+          <div class="logo-row">
+            <div class="logo-name">NetScope</div>
+            <div class="logo-sub">NETWORK ANALYZER</div>
+          </div>
+          <div class="section-hdr">Capture</div>
+          <div class="wf-tab active"><div class="dot"></div>Packets</div>
+          <div class="section-hdr">Tools</div>
+          <div class="wf-tab"><div class="dot"></div>Net Tools</div>
+          <div class="wf-tab"><div class="dot"></div>Analysis</div>
+          <div class="wf-tab"><div class="dot"></div>Traffic Map</div>
+          <div class="wf-tab"><div class="dot"></div>Modbus</div>
+          <div class="section-hdr">System</div>
+          <div class="wf-tab"><div class="dot"></div>Knowledge Base</div>
+          <div class="wf-tab"><div class="dot"></div>Channels</div>
+          <div class="wf-tab"><div class="dot"></div>Status</div>
+          <div class="wf-tab"><div class="dot"></div>Scheduler</div>
+          <div class="wf-tab"><div class="dot"></div>Wizards</div>
+          <div class="wf-tab"><div class="dot"></div>Reports</div>
+        </div>
+        <div class="wf-main-before">
+          <div class="wf-topbar">
+            <div class="wf-topbar-chip">in 0 / out 0</div>
+            <div class="wf-topbar-chip">total 0</div>
+            <div class="wf-topbar-chip">req 0</div>
+            <div class="wf-topbar-chip many">Updates</div>
+            <div class="wf-topbar-chip many">~23s</div>
+            <div class="wf-topbar-chip many">8.2 GB</div>
+            <div class="wf-topbar-chip many">Ollama</div>
+            <div class="wf-topbar-chip many">qwen3.5 ▾</div>
+            <div class="wf-topbar-chip many">⬇ Pull</div>
+          </div>
+          <div class="wf-content">content<br><span style="font-size:10px;color:#30363d">~970px wide</span></div>
+        </div>
+        <div class="wf-right">
+          <div class="wf-right-tabs">
+            <div class="wf-right-tab active">Chat</div>
+            <div class="wf-right-tab">Quick</div>
+            <div class="wf-right-tab">Deep</div>
+          </div>
+          <div class="wf-right-body">always visible<br><span style="font-size:10px;color:#30363d">280px · 18% of screen</span></div>
+          <div class="wf-right-input">
+            <div class="wf-input-bar"></div>
+            <div class="wf-send"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="compare-pane">
+      <div class="compare-pane-label">
+        <span class="badge badge-after">After</span>
+        48px icon sidebar · no header · AI chat on demand
+      </div>
+      <div class="wireframe">
+        <div class="wf-sidebar-after">
+          <div class="wf-icon active"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon-spacer"></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+          <div class="wf-icon"><div class="icon-dot"></div></div>
+        </div>
+        <div class="wf-main-after">
+          <div class="wf-drag-strip" style="justify-content: flex-end; gap: 6px;">
+            <div style="width:10px;height:10px;background:#21262d;border-radius:50%"></div>
+            <div style="width:10px;height:10px;background:#21262d;border-radius:50%"></div>
+            <div style="width:10px;height:10px;background:#21262d;border-radius:50%"></div>
+          </div>
+          <div class="wf-tab-strip">
+            <div class="wf-tab-item active">Capture</div>
+            <div class="wf-tab-item">Analyze</div>
+          </div>
+          <div class="wf-content">content<br><span style="font-size:10px;color:#30363d">~1100px wide (+130px)</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── NAV RESTRUCTURE ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Navigation — 11 items → 7 items</div>
+  <div class="nav-compare">
+
+    <div>
+      <div style="font-size:11px;color:#4a5568;margin-bottom:8px;">Current: 11 nav items in 3 sections</div>
+      <div class="nav-list">
+        <div class="nav-section-hdr">Capture</div>
+        <div class="nav-item active"><div class="nav-dot"></div>Packets</div>
+        <div class="nav-section-hdr">Tools</div>
+        <div class="nav-item"><div class="nav-dot"></div>Net Tools</div>
+        <div class="nav-item"><div class="nav-dot"></div>Analysis <span class="change-tag tag-merge">→ merges</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Traffic Map <span class="change-tag tag-merge">→ merges</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Modbus <span class="change-tag tag-merge">→ merges</span></div>
+        <div class="nav-section-hdr">System</div>
+        <div class="nav-item"><div class="nav-dot"></div>Knowledge Base</div>
+        <div class="nav-item"><div class="nav-dot"></div>Channels</div>
+        <div class="nav-item"><div class="nav-dot"></div>Status <span class="change-tag tag-merge">→ merges</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Scheduler <span class="change-tag tag-cut">cut</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Wizards <span class="change-tag tag-moved">→ settings</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Reports <span class="change-tag tag-merge">→ merges</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:11px;color:#4a5568;margin-bottom:8px;">Proposed: 7 nav items, no sections</div>
+      <div class="nav-list">
+        <div class="nav-item active"><div class="nav-dot"></div>Capture <span style="font-size:10px;color:#4a5568;margin-left:4px">← Packets</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Analysis <span style="font-size:10px;color:#a371f7;margin-left:4px">+ Traffic Map</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Tools <span style="font-size:10px;color:#a371f7;margin-left:4px">+ Modbus</span></div>
+        <div class="nav-item"><div class="nav-dot"></div>Knowledge</div>
+        <div class="nav-item"><div class="nav-dot"></div>Channels</div>
+        <div class="nav-item"><div class="nav-dot"></div>Status <span style="font-size:10px;color:#a371f7;margin-left:4px">+ Reports</span></div>
+        <div style="height:1px;background:#21262d;margin:4px 0;"></div>
+        <div class="nav-item new-item"><div class="nav-dot"></div>Settings <span style="font-size:10px;color:#3fb950;margin-left:4px">new · LLM, Wizards, Updates</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── CAPTURE TAB MOCKUP ───────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Capture Tab — Empty state vs Active state</div>
+  <div class="compare">
+
+    <div class="compare-pane">
+      <div class="compare-pane-label">Empty state — one clear question</div>
+      <div class="capture-mock">
+        <div class="capture-empty">
+          <div class="capture-hero-text">NetScope</div>
+          <div class="capture-interface-row">
+            <div class="capture-select">
+              <span>— select interface —</span>
+              <span class="capture-select-chevron">▾</span>
+            </div>
+            <div class="capture-btn-primary">▶ Start Capture</div>
+          </div>
+          <div class="capture-divider">or</div>
+          <div class="capture-btn-ghost">Open PCAP file</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-pane">
+      <div class="compare-pane-label">Active capture — data takes over</div>
+      <div class="capture-mock">
+        <div class="capture-strip">
+          <div class="capture-dot"></div>
+          <div class="capture-meta">
+            <span><span class="label">iface</span> eth0</span>
+            <span><span class="label">pkts</span> 1,247</span>
+            <span><span class="label">size</span> 3.2 MB</span>
+            <span><span class="label">time</span> 00:04:12</span>
+          </div>
+          <div class="capture-stop">■ Stop</div>
+        </div>
+        <div class="capture-table-header">
+          <div class="th th-num">#</div>
+          <div class="th th-time">Time</div>
+          <div class="th th-src">Source</div>
+          <div class="th th-dst">Destination</div>
+          <div class="th th-proto">Proto</div>
+          <div class="th th-len">Len</div>
+          <div class="th th-info">Info</div>
+        </div>
+        <div class="capture-table-rows">
+          <div class="tr selected">
+            <div class="td td-num">1</div>
+            <div class="td td-time">0.000001</div>
+            <div class="td td-src">192.168.1.104</div>
+            <div class="td td-dst">8.8.8.8</div>
+            <div class="td td-proto"><span class="proto-badge proto-dns">DNS</span></div>
+            <div class="td td-len">74</div>
+            <div class="td td-info">Standard query A google.com</div>
+          </div>
+          <div class="tr">
+            <div class="td td-num">2</div>
+            <div class="td td-time">0.001823</div>
+            <div class="td td-src">8.8.8.8</div>
+            <div class="td td-dst">192.168.1.104</div>
+            <div class="td td-proto"><span class="proto-badge proto-dns">DNS</span></div>
+            <div class="td td-len">90</div>
+            <div class="td td-info">Standard query response 142.250.80.46</div>
+          </div>
+          <div class="tr">
+            <div class="td td-num">3</div>
+            <div class="td td-time">0.002104</div>
+            <div class="td td-src">192.168.1.104</div>
+            <div class="td td-dst">142.250.80.46</div>
+            <div class="td td-proto"><span class="proto-badge proto-tcp">TCP</span></div>
+            <div class="td td-len">60</div>
+            <div class="td td-info">44231 → 443 [SYN] Seq=0 Win=65535</div>
+          </div>
+          <div class="tr">
+            <div class="td td-num">4</div>
+            <div class="td td-time">0.004882</div>
+            <div class="td td-src">142.250.80.46</div>
+            <div class="td td-dst">192.168.1.104</div>
+            <div class="td td-proto"><span class="proto-badge proto-tls">TLS</span></div>
+            <div class="td td-len">1420</div>
+            <div class="td td-info">Client Hello, Server Hello</div>
+          </div>
+          <div class="tr">
+            <div class="td td-num">5</div>
+            <div class="td td-time">0.006931</div>
+            <div class="td td-src">192.168.1.1</div>
+            <div class="td td-dst">192.168.1.255</div>
+            <div class="td td-proto"><span class="proto-badge proto-arp">ARP</span></div>
+            <div class="td td-len">42</div>
+            <div class="td td-info">Who has 192.168.1.104? Tell 192.168.1.1</div>
+          </div>
+          <div class="tr">
+            <div class="td td-num">6</div>
+            <div class="td td-time">0.007204</div>
+            <div class="td td-src">192.168.1.104</div>
+            <div class="td td-dst">192.168.1.1</div>
+            <div class="td td-proto"><span class="proto-badge proto-http">HTTP</span></div>
+            <div class="td td-len">512</div>
+            <div class="td td-info">GET /api/status HTTP/1.1</div>
+          </div>
+          <div class="tr" style="opacity:0.5;">
+            <div class="td td-num">7</div>
+            <div class="td td-time">0.009113</div>
+            <div class="td td-src">192.168.1.104</div>
+            <div class="td td-dst">10.0.0.5</div>
+            <div class="td td-proto"><span class="proto-badge proto-tcp">TCP</span></div>
+            <div class="td td-len">148</div>
+            <div class="td td-info">44232 → 502 [SYN] Seq=0 Win=65535</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── STATUS TAB MOCKUP ────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Status Tab — System health replaces the header bar</div>
+  <div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:20px;">
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="status-card-row"><div class="health-dot health-ok"></div><div class="status-service">Backend API</div></div>
+        <div class="status-detail">127.0.0.1:8004 · 12ms</div>
+      </div>
+      <div class="status-card">
+        <div class="status-card-row"><div class="health-dot health-ok"></div><div class="status-service">Ollama</div></div>
+        <div class="status-detail">qwen3.5:7b · connected</div>
+      </div>
+      <div class="status-card">
+        <div class="status-card-row"><div class="health-dot health-ok"></div><div class="status-service">tshark</div></div>
+        <div class="status-detail">v4.2.0 · available</div>
+      </div>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-cell">
+        <div class="metric-value">142<span style="font-size:13px;font-weight:400;color:#4a5568">ms</span></div>
+        <div class="metric-label">LLM Latency</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">124k</div>
+        <div class="metric-label">Tokens In</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">48k</div>
+        <div class="metric-label">Tokens Out</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">412<span style="font-size:13px;font-weight:400;color:#4a5568">MB</span></div>
+        <div class="metric-label">RAM Usage</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#4a5568;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Recent log</span>
+      <span style="color:#58a6ff;cursor:pointer;">Export Report</span>
+    </div>
+    <div style="background:#0a0a0b;border:1px solid #21262d;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;flex-direction:column;gap:4px;">
+      <div><span style="color:#30363d">05:41:26</span> <span style="color:#4a5568">INFO</span>  <span style="color:#4a5568">Backend started on port 8004</span></div>
+      <div><span style="color:#30363d">05:41:28</span> <span style="color:#4a5568">INFO</span>  <span style="color:#4a5568">ChromaDB collection opened (0 docs)</span></div>
+      <div><span style="color:#30363d">05:41:29</span> <span style="color:#3fb950">OK  </span>  <span style="color:#4a5568">Ollama connected · qwen3.5:7b</span></div>
+      <div><span style="color:#30363d">05:42:01</span> <span style="color:#d29922">WARN</span>  <span style="color:#d29922">tshark capture needs elevated privileges</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── COLOR SYSTEM ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Color System — Achromatic + one accent</div>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-color" style="background:#0a0a0b"></div><div class="swatch-meta"><span class="swatch-name">bg-base</span><span class="swatch-hex">#0a0a0b</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#0d1117"></div><div class="swatch-meta"><span class="swatch-name">bg-elevated</span><span class="swatch-hex">#0d1117</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#161b22"></div><div class="swatch-meta"><span class="swatch-name">bg-surface</span><span class="swatch-hex">#161b22</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#1c2128"></div><div class="swatch-meta"><span class="swatch-name">bg-overlay</span><span class="swatch-hex">#1c2128</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#21262d"></div><div class="swatch-meta"><span class="swatch-name">border</span><span class="swatch-hex">#21262d</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#58a6ff"></div><div class="swatch-meta"><span class="swatch-name">accent</span><span class="swatch-hex">#58a6ff</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#3fb950"></div><div class="swatch-meta"><span class="swatch-name">success</span><span class="swatch-hex">#3fb950</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#f85149"></div><div class="swatch-meta"><span class="swatch-name">danger</span><span class="swatch-hex">#f85149</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#d29922"></div><div class="swatch-meta"><span class="swatch-name">warning</span><span class="swatch-hex">#d29922</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#e2e8f0"></div><div class="swatch-meta"><span class="swatch-name">text-primary</span><span class="swatch-hex">#e2e8f0</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#8b949e"></div><div class="swatch-meta"><span class="swatch-name">text-secondary</span><span class="swatch-hex">#8b949e</span></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#4a5568"></div><div class="swatch-meta"><span class="swatch-name">text-disabled</span><span class="swatch-hex">#4a5568</span></div></div>
+  </div>
+</div>
+
+</body>
+</html>

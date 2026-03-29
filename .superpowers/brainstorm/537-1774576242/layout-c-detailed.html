@@ -1,0 +1,175 @@
+<h2>Option C — Detailed Layout</h2>
+<p class="subtitle">Icon rail · Packets center · Persistent Chat + collapsible Analysis right column. Does this feel right?</p>
+
+<div class="mockup" style="max-width:900px; margin:0 auto;">
+  <div class="mockup-header">Full App Layout — Netscope Desktop</div>
+  <div class="mockup-body" style="padding:0; height:520px; display:flex; font-size:11px; overflow:hidden;">
+
+    <!-- Icon Rail -->
+    <div style="width:48px; background:#0f1117; border-right:1px solid #1e2433; display:flex; flex-direction:column; align-items:center; padding:10px 0; gap:4px; flex-shrink:0;">
+      <div style="width:32px; height:32px; border-radius:6px; background:#1a2035; display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:4px;" title="NetScope">🔭</div>
+      <div style="width:1px; height:1px; margin:4px 0;"></div>
+
+      <!-- Active: Capture -->
+      <div style="width:36px; height:36px; border-radius:6px; background:#1e3a5f; border:1px solid #3b82f6; display:flex; align-items:center; justify-content:center; font-size:16px;" title="Capture">📊</div>
+      <div style="width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#6b7280;" title="Analysis">🔬</div>
+      <div style="width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#6b7280;" title="Traffic Map">🗺</div>
+      <div style="width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#6b7280;" title="Protocols">⚙</div>
+
+      <div style="flex:1;"></div>
+      <div style="width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#6b7280;" title="Settings">🔧</div>
+    </div>
+
+    <!-- Main Packet Area -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0; background:#0a0d14;">
+
+      <!-- Capture toolbar -->
+      <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:#0f1117; border-bottom:1px solid #1e2433; flex-shrink:0;">
+        <button style="background:#1d4ed8; color:#fff; border:none; border-radius:4px; padding:3px 10px; font-size:10px; cursor:pointer;">▶ Start</button>
+        <button style="background:#1e2433; color:#9ca3af; border:1px solid #2d3748; border-radius:4px; padding:3px 10px; font-size:10px; cursor:pointer;">⬛ Stop</button>
+        <select style="background:#1e2433; color:#9ca3af; border:1px solid #2d3748; border-radius:4px; padding:3px 6px; font-size:10px;">
+          <option>eth0</option>
+        </select>
+        <div style="margin-left:auto; display:flex; gap:6px; align-items:center;">
+          <button style="background:#1e2433; color:#9ca3af; border:1px solid #2d3748; border-radius:4px; padding:3px 10px; font-size:10px; cursor:pointer;">📥 Import</button>
+          <button style="background:#1e2433; color:#9ca3af; border:1px solid #2d3748; border-radius:4px; padding:3px 10px; font-size:10px; cursor:pointer;">💾 Captures</button>
+          <div style="width:1px; height:16px; background:#1e2433;"></div>
+          <span style="font-size:9px; color:#6b7280;">🤖 qwen2.5:3b</span>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex; align-items:center; gap:6px; padding:5px 10px; background:#0f1117; border-bottom:1px solid #1e2433; flex-shrink:0;">
+        <input style="flex:1; background:#1e2433; color:#e2e8f0; border:1px solid #2d3748; border-radius:4px; padding:3px 8px; font-size:10px;" placeholder="🔍  Filter: ip.addr == 192.168.1.1 or tcp.port == 443" />
+        <button style="background:#1e2433; color:#9ca3af; border:1px solid #2d3748; border-radius:4px; padding:3px 8px; font-size:10px;">Clear</button>
+      </div>
+
+      <!-- Packet table header -->
+      <div style="display:grid; grid-template-columns:50px 60px 110px 110px 55px 70px 1fr; gap:0; padding:4px 10px; background:#111827; border-bottom:1px solid #1e2433; flex-shrink:0;">
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">#</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Time</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Source</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Destination</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Proto</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Length</div>
+        <div style="color:#6b7280; font-size:9px; text-transform:uppercase;">Info</div>
+      </div>
+
+      <!-- Packet rows -->
+      <div style="flex:1; overflow:hidden;">
+        ${[
+          ["1","0.000","192.168.1.5","10.0.0.1","TCP","74","SYN → 10.0.0.1:443","#1a2035","#3b82f6"],
+          ["2","0.006","10.0.0.1","192.168.1.5","TCP","74","SYN-ACK ← 10.0.0.1","#0f1a2e","#3b82f6"],
+          ["3","0.006","192.168.1.5","10.0.0.1","TCP","66","ACK","#0a0d14","#4b5563"],
+          ["4","0.012","192.168.1.5","10.0.0.1","TLS","583","Client Hello","#0a0d14","#8b5cf6"],
+          ["5","0.048","10.0.0.1","192.168.1.5","TLS","1434","Server Hello, Certificate","#0a0d14","#8b5cf6"],
+          ["6","0.140","192.168.1.5","10.0.0.1","TCP","66","[Retransmission]","#2d1515","#ef4444"],
+          ["7","0.141","192.168.1.5","192.168.1.1","DNS","78","Standard query A example.com","#0a1a14","#10b981"],
+          ["8","0.143","192.168.1.1","192.168.1.5","DNS","94","Standard query response A 93.184.216.34","#0a1a14","#10b981"],
+        ].map(([n,t,src,dst,proto,len,info,bg,col]) => `
+          <div style="display:grid; grid-template-columns:50px 60px 110px 110px 55px 70px 1fr; padding:3px 10px; background:${bg}; border-bottom:1px solid #1a1f2e;">
+            <div style="color:#6b7280; font-size:10px;">${n}</div>
+            <div style="color:#6b7280; font-size:10px; font-family:monospace;">${t}</div>
+            <div style="color:#e2e8f0; font-size:10px; font-family:monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${src}</div>
+            <div style="color:#e2e8f0; font-size:10px; font-family:monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${dst}</div>
+            <div style="color:${col}; font-size:10px; font-weight:600;">${proto}</div>
+            <div style="color:#6b7280; font-size:10px;">${len}</div>
+            <div style="color:#94a3b8; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${info}</div>
+          </div>
+        `).join("")}
+      </div>
+
+      <!-- Status bar -->
+      <div style="padding:3px 10px; background:#0f1117; border-top:1px solid #1e2433; display:flex; gap:12px; flex-shrink:0;">
+        <span style="font-size:9px; color:#6b7280;">8 packets</span>
+        <span style="font-size:9px; color:#ef4444;">1 retransmit</span>
+        <span style="font-size:9px; color:#6b7280;">Filtered: 8 / 8</span>
+        <span style="margin-left:auto; font-size:9px; color:#6b7280;">Tokens: 1.2k / 8k</span>
+      </div>
+    </div>
+
+    <!-- Right Column: Chat + Analysis -->
+    <div style="width:300px; flex-shrink:0; border-left:1px solid #1e2433; display:flex; flex-direction:column; background:#0f1117;">
+
+      <!-- Right column header tabs -->
+      <div style="display:flex; border-bottom:1px solid #1e2433; flex-shrink:0;">
+        <button style="flex:1; padding:7px; font-size:10px; background:#0f1117; border:none; border-bottom:2px solid #3b82f6; color:#3b82f6; cursor:pointer;">💬 Chat</button>
+        <button style="flex:1; padding:7px; font-size:10px; background:#0a0d14; border:none; color:#6b7280; cursor:pointer;">⚡ Quick</button>
+        <button style="flex:1; padding:7px; font-size:10px; background:#0a0d14; border:none; color:#6b7280; cursor:pointer;">🔬 Deep</button>
+      </div>
+
+      <!-- Collapsible Analysis section (collapsed) -->
+      <div style="border-bottom:1px solid #1e2433; flex-shrink:0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 10px; background:#111827; cursor:pointer;">
+          <span style="font-size:10px; color:#10b981; font-weight:600;">✓ Deep Analysis Ready</span>
+          <span style="font-size:9px; color:#6b7280;">▼ expand</span>
+        </div>
+        <!-- Collapsed cards preview -->
+        <div style="display:flex; gap:4px; padding:5px 8px; background:#0a0d14; flex-wrap:wrap;">
+          <span style="font-size:9px; padding:2px 6px; background:#2d1515; color:#ef4444; border-radius:3px; border:1px solid #7f1d1d;">42 retransmit</span>
+          <span style="font-size:9px; padding:2px 6px; background:#1a1f0e; color:#84cc16; border-radius:3px; border:1px solid #365314;">RTT 4.2ms</span>
+          <span style="font-size:9px; padding:2px 6px; background:#1a1535; color:#8b5cf6; border-radius:3px; border:1px solid #4c1d95;">server bottleneck</span>
+          <span style="font-size:9px; padding:2px 6px; background:#1e2433; color:#6b7280; border-radius:3px; border:1px solid #2d3748;">+ 3 more</span>
+        </div>
+      </div>
+
+      <!-- Chat messages -->
+      <div style="flex:1; overflow:hidden; padding:8px; display:flex; flex-direction:column; gap:6px;">
+        <div style="background:#1e2433; border-radius:6px; padding:7px 9px; font-size:10px; color:#94a3b8; line-height:1.5; border-left:2px solid #3b82f6;">
+          <div style="color:#3b82f6; font-size:9px; margin-bottom:3px;">🤖 Netscope</div>
+          Deep analysis complete. <strong style="color:#ef4444;">42 retransmissions</strong> detected — server at 10.0.0.1:443 is the bottleneck (85% of latency). Average RTT is healthy at 4.2ms. Recommend checking server-side queue depth.
+        </div>
+        <div style="background:#1d3a5f; border-radius:6px; padding:7px 9px; font-size:10px; color:#bfdbfe; align-self:flex-end; max-width:85%; line-height:1.5;">
+          What's causing the retransmissions?
+        </div>
+        <div style="background:#1e2433; border-radius:6px; padding:7px 9px; font-size:10px; color:#94a3b8; line-height:1.5; border-left:2px solid #3b82f6;">
+          <div style="color:#3b82f6; font-size:9px; margin-bottom:3px;">🤖 Netscope</div>
+          The retransmissions are clustered on stream 0 (192.168.1.5→10.0.0.1). The timing suggests TCP zero-window conditions — the server's receive buffer is full…
+        </div>
+      </div>
+
+      <!-- Chat input -->
+      <div style="padding:8px; border-top:1px solid #1e2433; flex-shrink:0;">
+        <div style="display:flex; gap:6px; align-items:flex-end;">
+          <div style="flex:1; background:#1e2433; border:1px solid #2d3748; border-radius:6px; padding:6px 8px; font-size:10px; color:#6b7280; min-height:32px;">Ask about your traffic…</div>
+          <button style="background:#1d4ed8; color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; flex-shrink:0;">↑</button>
+        </div>
+        <div style="display:flex; gap:4px; margin-top:5px; flex-wrap:wrap;">
+          <span style="font-size:9px; padding:2px 7px; background:#1e2433; color:#6b7280; border-radius:10px; border:1px solid #2d3748; cursor:pointer;">Why so many RSTs?</span>
+          <span style="font-size:9px; padding:2px 7px; background:#1e2433; color:#6b7280; border-radius:10px; border:1px solid #2d3748; cursor:pointer;">Follow stream 0</span>
+          <span style="font-size:9px; padding:2px 7px; background:#1e2433; color:#6b7280; border-radius:10px; border:1px solid #2d3748; cursor:pointer;">Run Deep mode</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Key decisions baked in</h3>
+  <ul style="font-size:12px; line-height:1.8; color:var(--color-muted);">
+    <li>📊 <strong>5-icon left rail</strong>: Capture · Analysis · Traffic Map · Protocols · Settings</li>
+    <li>📥 <strong>Import + Captures</strong> as toolbar buttons inside the Capture view (top right)</li>
+    <li>🔬 <strong>Analysis results</strong> collapsed to a summary strip above chat — click to expand full cards</li>
+    <li>💬 <strong>Chat always visible</strong> — no tab switching, conversation persists as you navigate</li>
+    <li>⚡ <strong>Quick / Deep / Chat</strong> are 3 sub-modes of the right column header</li>
+    <li>💡 <strong>Suggested prompts</strong> ("Why so many RSTs?") pre-filled from analysis findings</li>
+  </ul>
+</div>
+
+<div class="options" style="margin-top:8px;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Looks good — proceed with this design</h3>
+      <p>Build the spec and implementation plan</p>
+    </div>
+  </div>
+  <div class="option" data-choice="tweak" onclick="toggleSelect(this)">
+    <div class="letter">~</div>
+    <div class="content">
+      <h3>Close, but I want to tweak something</h3>
+      <p>Tell me what to change</p>
+    </div>
+  </div>
+</div>

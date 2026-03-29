@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modbus Audit — {{ report_id }}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; }
+  h1 { border-bottom: 2px solid #007aff; padding-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { background: #f0f4ff; text-align: left; padding: 8px 12px; border-bottom: 2px solid #c0d0ff; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e8eaf0; }
+  .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .analysis { background: #f8f9fa; border-left: 4px solid #007aff;
+              padding: 16px; margin: 16px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Modbus Device Audit</h1>
+<div class="meta">Report ID: {{ report_id }} · Generated: {{ generated_at }}</div>
+
+{% if devices is defined %}
+<h2>Discovered Devices ({{ devices | length }})</h2>
+<table>
+  <tr><th>IP</th><th>Port</th><th>Unit ID</th><th>Status</th></tr>
+  {% for d in devices %}
+  <tr>
+    <td>{{ d.ip | default('—') }}</td>
+    <td>{{ d.port | default(502) }}</td>
+    <td>{{ d.unit_id | default('—') }}</td>
+    <td>{{ d.status | default('unknown') }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if analysis is defined %}
+<h2>AI Analysis</h2>
+<div class="analysis">{{ analysis }}</div>
+{% endif %}
+
+{% if registers is defined %}
+<h2>Register Baseline</h2>
+<pre>{{ registers | tojson(indent=2) }}</pre>
+{% endif %}
+</body>
+</html>

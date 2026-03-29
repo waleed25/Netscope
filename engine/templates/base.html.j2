@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetScope Report — {{ report_id }}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         max-width: 900px; margin: 40px auto; padding: 0 20px;
+         color: #1a1a2e; line-height: 1.6; }
+  h1 { color: #0a0a23; border-bottom: 2px solid #007aff; padding-bottom: 8px; }
+  h2 { color: #1a1a2e; margin-top: 32px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { background: #f0f4ff; text-align: left; padding: 8px 12px; border-bottom: 2px solid #c0d0ff; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e8eaf0; }
+  .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
+           font-size: 12px; font-weight: 600; }
+  .badge-ok { background: #d4edda; color: #155724; }
+  .badge-warn { background: #fff3cd; color: #856404; }
+  .badge-error { background: #f8d7da; color: #721c24; }
+  pre { background: #f8f9fa; border: 1px solid #e8eaf0; border-radius: 4px;
+        padding: 12px; overflow-x: auto; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>NetScope Report</h1>
+<div class="meta">
+  Report ID: {{ report_id }} &nbsp;·&nbsp;
+  Generated: {{ generated_at }}
+</div>
+<h2>Data</h2>
+<pre>{{ data | tojson(indent=2) if data is defined else "No data" }}</pre>
+</body>
+</html>

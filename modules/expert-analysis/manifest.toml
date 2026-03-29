@@ -1,0 +1,30 @@
+[module]
+name = "expert-analysis"
+version = "1.0.0"
+description = "AI-powered expert analysis of network traffic and Modbus data"
+optional = true
+process = "engine"
+requires_modules = ["llm-agent"]
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+ram_gb_min = 4
+gpu_modes = ["cuda", "cpu"]
+
+[python]
+packages = []
+process = "engine"
+
+[provides]
+tools = ["expert_analyze", "generate_insight", "list_insights"]
+ui = ["ExpertTools", "AnalysisStrip"]
+
+[provides.nav]
+sidebar_section = "Tools"
+sidebar_label = "Expert Analysis"
+
+[safety]
+max_permission = "read"
+audit_log = true

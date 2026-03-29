@@ -1,0 +1,239 @@
+<h2>God's View — with ModScan Register Grid</h2>
+<p class="subtitle">Where should the live register grid live?</p>
+
+<div class="cards">
+
+  <!-- Option A: Split — diagnostics left, register grid right -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:10px">
+      <div style="display:flex;gap:6px">
+        <!-- Left: diagnostics panels -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+          <!-- KPI row -->
+          <div style="display:flex;gap:3px">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 6px;flex:1;text-align:center">
+              <div style="color:#58a6ff;font-size:10px;font-weight:bold">12ms</div>
+              <div style="color:#8b949e;font-size:8px">RTT</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 6px;flex:1;text-align:center">
+              <div style="color:#f78166;font-size:10px;font-weight:bold">17</div>
+              <div style="color:#8b949e;font-size:8px">Exc</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 6px;flex:1;text-align:center">
+              <div style="color:#d2a8ff;font-size:10px;font-weight:bold">1.2/s</div>
+              <div style="color:#8b949e;font-size:8px">Rate</div>
+            </div>
+          </div>
+          <!-- RTT chart -->
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:5px">
+            <div style="color:#58a6ff;font-size:8px;margin-bottom:3px">RTT Timeline</div>
+            <div style="display:flex;align-items:flex-end;gap:1px;height:22px">
+              <div style="background:#1f6feb;width:8px;height:8px"></div>
+              <div style="background:#1f6feb;width:8px;height:12px"></div>
+              <div style="background:#da3633;width:8px;height:22px"></div>
+              <div style="background:#1f6feb;width:8px;height:14px"></div>
+              <div style="background:#1f6feb;width:8px;height:10px"></div>
+              <div style="background:#1f6feb;width:8px;height:16px"></div>
+            </div>
+          </div>
+          <!-- Transaction table -->
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:25px 50px 1fr 30px;background:#0d1117;padding:3px 5px;gap:3px">
+              <div style="color:#8b949e;font-size:8px">#</div>
+              <div style="color:#8b949e;font-size:8px">Time</div>
+              <div style="color:#8b949e;font-size:8px">Request</div>
+              <div style="color:#8b949e;font-size:8px">RTT</div>
+            </div>
+            <div style="display:grid;grid-template-columns:25px 50px 1fr 30px;background:#1a2535;padding:2px 5px;gap:3px">
+              <div style="color:#c8d8f0;font-size:7px">142</div>
+              <div style="color:#c8d8f0;font-size:7px">14:22:03</div>
+              <div style="color:#c8d8f0;font-size:7px">FC03 40001×10 → OK</div>
+              <div style="color:#c8d8f0;font-size:7px">11ms</div>
+            </div>
+            <div style="display:grid;grid-template-columns:25px 50px 1fr 30px;background:#2d1515;padding:2px 5px;gap:3px">
+              <div style="color:#f4b8b8;font-size:7px">141</div>
+              <div style="color:#f4b8b8;font-size:7px">14:22:02</div>
+              <div style="color:#f4b8b8;font-size:7px">FC03 40100×1 → EC02</div>
+              <div style="color:#f4b8b8;font-size:7px">8ms</div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: ModScan register grid -->
+        <div style="width:160px;background:#161b22;border:1px solid #30363d;border-radius:3px;overflow:hidden;flex-shrink:0">
+          <div style="background:#0d1117;padding:4px 6px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between">
+            <div style="color:#c9d1d9;font-size:8px">Registers</div>
+            <div style="color:#58a6ff;font-size:7px">sim-001 · UID 1</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;padding:2px 5px;border-bottom:1px solid #21262d">
+            <div style="color:#8b949e;font-size:7px">Address</div>
+            <div style="color:#8b949e;font-size:7px">Value</div>
+            <div style="color:#8b949e;font-size:7px">Unit</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;background:#1a2535;padding:2px 5px">
+            <div style="color:#c8d8f0;font-size:7px">40001</div>
+            <div style="background:#0d1117;border:1px solid #388bfd;color:#58a6ff;font-size:7px;padding:1px 3px;border-radius:2px">230.4</div>
+            <div style="color:#8b949e;font-size:7px">V</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;padding:2px 5px">
+            <div style="color:#c8d8f0;font-size:7px">40002</div>
+            <div style="color:#e3b341;font-size:7px">15.2 ▲</div>
+            <div style="color:#8b949e;font-size:7px">A</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;padding:2px 5px">
+            <div style="color:#c8d8f0;font-size:7px">40003</div>
+            <div style="color:#c8d8f0;font-size:7px">3521</div>
+            <div style="color:#8b949e;font-size:7px">W</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;padding:2px 5px">
+            <div style="color:#c8d8f0;font-size:7px">40004</div>
+            <div style="color:#c8d8f0;font-size:7px">50.0</div>
+            <div style="color:#8b949e;font-size:7px">Hz</div>
+          </div>
+          <div style="display:grid;grid-template-columns:45px 60px 30px;padding:2px 5px">
+            <div style="color:#c8d8f0;font-size:7px">40005</div>
+            <div style="color:#3fb950;font-size:7px">1284 ▲</div>
+            <div style="color:#8b949e;font-size:7px">Wh</div>
+          </div>
+          <div style="padding:3px 5px;border-top:1px solid #21262d;margin-top:2px;display:flex;gap:3px">
+            <input style="flex:1;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;font-size:7px;padding:2px 4px;border-radius:2px;font-family:monospace" placeholder="addr" value="40001" readonly />
+            <input style="flex:1;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;font-size:7px;padding:2px 4px;border-radius:2px;font-family:monospace" placeholder="value" value="231" readonly />
+            <div style="background:#1f6feb;color:#fff;font-size:7px;padding:2px 5px;border-radius:2px">W</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Side by Side</h3>
+      <p>Diagnostics on left, live register grid on right (like ModScan). Click any register cell to edit inline. Arrow (▲▼) shows direction of last change.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Register grid below, tabbed -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:10px">
+      <!-- Full diagnostics on top -->
+      <div style="display:flex;gap:4px;margin-bottom:5px">
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 8px;flex:1;text-align:center">
+          <div style="color:#58a6ff;font-size:10px;font-weight:bold">12ms</div>
+          <div style="color:#8b949e;font-size:7px">RTT avg</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 8px;flex:1;text-align:center">
+          <div style="color:#f78166;font-size:10px;font-weight:bold">17</div>
+          <div style="color:#8b949e;font-size:7px">Exceptions</div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px 8px;flex:1;text-align:center">
+          <div style="color:#d2a8ff;font-size:10px;font-weight:bold">1.2/s</div>
+          <div style="color:#8b949e;font-size:7px">Req Rate</div>
+        </div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:5px;margin-bottom:5px">
+        <div style="display:flex;align-items:flex-end;gap:1px;height:18px">
+          <div style="background:#1f6feb;width:9px;height:8px"></div>
+          <div style="background:#da3633;width:9px;height:18px"></div>
+          <div style="background:#1f6feb;width:9px;height:12px"></div>
+          <div style="background:#1f6feb;width:9px;height:10px"></div>
+          <div style="background:#1f6feb;width:9px;height:14px"></div>
+        </div>
+      </div>
+      <!-- Sub-tabs: Transactions | Registers -->
+      <div style="display:flex;gap:0;border-bottom:1px solid #30363d;margin-bottom:5px">
+        <div style="background:#161b22;color:#c9d1d9;font-size:8px;padding:3px 8px;border-top:1px solid #58a6ff;border-left:1px solid #30363d;border-right:1px solid #30363d">Transactions</div>
+        <div style="color:#8b949e;font-size:8px;padding:3px 8px;border-right:1px solid #30363d">Registers ✏️</div>
+      </div>
+      <!-- Transaction table (visible sub-tab) -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:25px 50px 1fr 30px;background:#0d1117;padding:2px 5px">
+          <div style="color:#8b949e;font-size:7px">#</div>
+          <div style="color:#8b949e;font-size:7px">Time</div>
+          <div style="color:#8b949e;font-size:7px">Request</div>
+          <div style="color:#8b949e;font-size:7px">RTT</div>
+        </div>
+        <div style="display:grid;grid-template-columns:25px 50px 1fr 30px;background:#1a2535;padding:2px 5px">
+          <div style="color:#c8d8f0;font-size:7px">142</div>
+          <div style="color:#c8d8f0;font-size:7px">14:22:03</div>
+          <div style="color:#c8d8f0;font-size:7px">FC03 40001×10 OK</div>
+          <div style="color:#c8d8f0;font-size:7px">11ms</div>
+        </div>
+      </div>
+      <div style="color:#8b949e;font-size:7px;margin-top:4px;text-align:center">Switch to "Registers" tab → ModScan grid view</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Sub-tabs</h3>
+      <p>Diagnostics at top always visible. Bottom half switches between "Transactions" and "Registers" via sub-tabs. Registers tab shows full ModScan grid with inline write.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Three-pane (diagnostics top-left, transaction top-right, register full bottom) -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0d1117;font-family:monospace;font-size:10px">
+      <!-- Top row: KPI + timeline + exceptions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">
+        <div>
+          <div style="display:flex;gap:3px;margin-bottom:4px">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:3px 6px;flex:1;text-align:center">
+              <div style="color:#58a6ff;font-size:9px;font-weight:bold">12ms</div>
+              <div style="color:#8b949e;font-size:7px">RTT</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:3px 6px;flex:1;text-align:center">
+              <div style="color:#f78166;font-size:9px;font-weight:bold">17</div>
+              <div style="color:#8b949e;font-size:7px">Exc</div>
+            </div>
+          </div>
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px">
+            <div style="display:flex;align-items:flex-end;gap:1px;height:16px">
+              <div style="background:#1f6feb;width:7px;height:8px"></div>
+              <div style="background:#da3633;width:7px;height:16px"></div>
+              <div style="background:#1f6feb;width:7px;height:10px"></div>
+              <div style="background:#1f6feb;width:7px;height:14px"></div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;padding:4px">
+          <div style="color:#f78166;font-size:8px;margin-bottom:3px">Exceptions</div>
+          <div style="color:#8b949e;font-size:7px">EC02 ████████ 12</div>
+          <div style="color:#8b949e;font-size:7px">EC06 ███ 4</div>
+        </div>
+      </div>
+      <!-- Full-width register grid (Wireshark-style, editable) -->
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:3px;overflow:hidden">
+        <div style="background:#0d1117;padding:3px 6px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between">
+          <div style="color:#c9d1d9;font-size:8px">Live Registers — sim-001 (FC03 Holding)</div>
+          <div style="color:#8b949e;font-size:7px">FC03 · FC04 · Coils · DI ▾</div>
+        </div>
+        <div style="display:grid;grid-template-columns:45px 70px 50px 40px 40px;background:#0d1117;padding:2px 6px;gap:4px;border-bottom:1px solid #21262d">
+          <div style="color:#8b949e;font-size:7px">Addr</div>
+          <div style="color:#8b949e;font-size:7px">Value</div>
+          <div style="color:#8b949e;font-size:7px">Eng Val</div>
+          <div style="color:#8b949e;font-size:7px">Unit</div>
+          <div style="color:#8b949e;font-size:7px">Δ</div>
+        </div>
+        <div style="display:grid;grid-template-columns:45px 70px 50px 40px 40px;background:#1a2535;padding:2px 6px;gap:4px">
+          <div style="color:#c8d8f0;font-size:7px">40001</div>
+          <div style="background:#0d1117;border:1px solid #388bfd;color:#58a6ff;font-size:7px;padding:1px 3px;border-radius:2px;cursor:text">2304</div>
+          <div style="color:#c8d8f0;font-size:7px">230.4</div>
+          <div style="color:#8b949e;font-size:7px">V</div>
+          <div style="color:#3fb950;font-size:7px">+0.3</div>
+        </div>
+        <div style="display:grid;grid-template-columns:45px 70px 50px 40px 40px;padding:2px 6px;gap:4px">
+          <div style="color:#c8d8f0;font-size:7px">40002</div>
+          <div style="color:#e3b341;font-size:7px">152 ▲</div>
+          <div style="color:#c8d8f0;font-size:7px">15.2</div>
+          <div style="color:#8b949e;font-size:7px">A</div>
+          <div style="color:#f78166;font-size:7px">-0.4</div>
+        </div>
+        <div style="display:grid;grid-template-columns:45px 70px 50px 40px 40px;background:#1a2535;padding:2px 6px;gap:4px">
+          <div style="color:#c8d8f0;font-size:7px">40003</div>
+          <div style="color:#c8d8f0;font-size:7px">35210</div>
+          <div style="color:#c8d8f0;font-size:7px">3521.0</div>
+          <div style="color:#8b949e;font-size:7px">W</div>
+          <div style="color:#8b949e;font-size:7px">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Three-Pane</h3>
+      <p>Diagnostics top-left, exceptions top-right, full-width editable register grid at bottom. Columns: Addr · Raw value (click to edit) · Eng value · Unit · Delta. FC switcher (FC03/FC04/Coils).</p>
+    </div>
+  </div>
+
+</div>

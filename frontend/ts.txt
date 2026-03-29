@@ -1,0 +1,6 @@
+﻿src/components/Network3D.tsx(112,13): error TS2322: Type '{ id: string; type: string; position: { x: number; y: number; }; data: TopologyNode; }[]' is not assignable to type 'Node[]'.
+  Type '{ id: string; type: string; position: { x: number; y: number; }; data: TopologyNode; }' is not assignable to type 'Node'.
+    Type '{ id: string; type: string; position: { x: number; y: number; }; data: TopologyNode; }' is not assignable to type '{ id: string; position: XYPosition; data: Record<string, unknown>; sourcePosition?: Position | undefined; targetPosition?: Position | undefined; ... 19 more ...; measured?: { ...; } | undefined; }'.
+      Types of property 'data' are incompatible.
+        Type 'TopologyNode' is not assignable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'TopologyNode'.

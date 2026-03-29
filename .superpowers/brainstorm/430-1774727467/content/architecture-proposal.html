@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NetScope Modular Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; padding: 24px; font-size: 13px; }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #f0f6fc; }
+  .sub { color: #8b949e; font-size: 12px; margin-bottom: 24px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8b949e; margin-bottom: 10px; }
+  h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #f0f6fc; }
+
+  .layers { display: flex; flex-direction: column; gap: 4px; margin-bottom: 28px; }
+  .layer { border-radius: 8px; padding: 12px 16px; border: 1px solid; }
+  .layer-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .layer-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+
+  /* Layer colors */
+  .l-ui     { background: #161b22; border-color: #30363d; }
+  .l-feat   { background: #0d2033; border-color: #1f4a6e; }
+  .l-svc    { background: #0d2218; border-color: #1a4731; }
+  .l-domain { background: #1a1208; border-color: #3d2b10; }
+  .l-infra  { background: #1a0d22; border-color: #3d1a5c; }
+  .l-hw     { background: #1a0d0d; border-color: #5c1a1a; }
+
+  .c-ui     { background: #21262d; color: #58a6ff; border: 1px solid #30363d; }
+  .c-feat   { background: #0d2033; color: #79c0ff; border: 1px solid #1f4a6e; }
+  .c-svc    { background: #0d2218; color: #56d364; border: 1px solid #1a4731; }
+  .c-domain { background: #1a1208; color: #e3b341; border: 1px solid #3d2b10; }
+  .c-infra  { background: #1a0d22; color: #bc8cff; border: 1px solid #3d1a5c; }
+  .c-hw     { background: #1a0d0d; color: #f85149; border: 1px solid #5c1a1a; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .card h3 { font-size: 12px; margin-bottom: 8px; }
+
+  .module-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; }
+  .module-header { display: flex; align-items: center; gap-8px; margin-bottom: 8px; }
+  .module-badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-bottom: 8px; }
+  .badge-core   { background: #1f4a6e; color: #79c0ff; }
+  .badge-opt    { background: #1a4731; color: #56d364; }
+  .badge-gpu    { background: #3d2b10; color: #e3b341; }
+  .module-row   { display: flex; justify-content: space-between; font-size: 11px; color: #8b949e; margin: 2px 0; }
+  .module-row span:last-child { color: #e6edf3; }
+
+  .proc-row { display: grid; grid-template-columns: 110px 1fr 1fr 80px; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 11px; }
+  .proc-row:last-child { border-bottom: none; }
+  .proc-name { font-weight: 700; font-size: 12px; }
+  .priv-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .priv-user  { background: #1a4731; color: #56d364; }
+  .priv-admin { background: #5c1a1a; color: #f85149; }
+  .priv-opt   { background: #21262d; color: #8b949e; }
+
+  .cap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cap-row { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 8px 10px; font-size: 11px; }
+  .cap-name { font-weight: 600; color: #e6edf3; margin-bottom: 4px; }
+  .cap-opts { display: flex; flex-direction: column; gap: 2px; }
+  .cap-opt  { display: flex; gap: 6px; align-items: center; color: #8b949e; }
+  .cap-opt .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-gpu  { background: #e3b341; }
+  .dot-cpu  { background: #56d364; }
+  .dot-cloud{ background: #58a6ff; }
+  .dot-off  { background: #30363d; }
+
+  .manifest-box { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .key { color: #79c0ff; }
+  .cmt { color: #8b949e; }
+
+  .arrow { text-align: center; color: #30363d; font-size: 16px; margin: 2px 0; }
+  .divider { border: none; border-top: 1px solid #21262d; margin: 20px 0; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; margin-right: 4px; }
+  .tag-perf { background: #3d2b10; color: #e3b341; }
+  .tag-safe { background: #1a0d22; color: #bc8cff; }
+  .tag-mod  { background: #0d2218; color: #56d364; }
+
+  ul { padding-left: 16px; }
+  li { color: #8b949e; margin: 3px 0; font-size: 11px; line-height: 1.5; }
+  li span { color: #e6edf3; }
+</style>
+</head>
+<body>
+
+<h1>NetScope — Modular Architecture for Scale</h1>
+<p class="sub">Performance · Safety · Device-adaptive · Feature-modular</p>
+
+<!-- LAYER STACK -->
+<h2>The Layer Stack</h2>
+<div class="layers">
+
+  <div class="layer l-ui">
+    <div class="layer-label" style="color:#58a6ff;">① Presentation — React feature modules</div>
+    <div class="layer-items">
+      <span class="chip c-ui">Wizard Framework</span>
+      <span class="chip c-ui">Report Renderer</span>
+      <span class="chip c-ui">Capture UI</span>
+      <span class="chip c-ui">Modbus UI</span>
+      <span class="chip c-ui">LLM Chat</span>
+      <span class="chip c-ui">RAG Panel</span>
+      <span class="chip c-ui">Topology Map</span>
+      <span class="chip c-ui">Scheduler</span>
+      <span class="chip c-ui" style="opacity:0.5">+ future modules</span>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l-feat">
+    <div class="layer-label" style="color:#79c0ff;">② Feature Modules — self-contained, opt-in</div>
+    <div class="layer-items">
+      <span class="chip c-feat">capture</span>
+      <span class="chip c-feat">modbus</span>
+      <span class="chip c-feat">llm-agent</span>
+      <span class="chip c-feat">rag</span>
+      <span class="chip c-feat">expert-analysis</span>
+      <span class="chip c-feat">ics-dnp3</span>
+      <span class="chip c-feat">topology</span>
+      <span class="chip c-feat">scheduler</span>
+      <span class="chip c-feat">reporting</span>
+      <span class="chip c-feat" style="opacity:0.5">+ wizards</span>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l-svc">
+    <div class="layer-label" style="color:#56d364;">③ Application Services — orchestrate features</div>
+    <div class="layer-items">
+      <span class="chip c-svc">Tool Registry</span>
+      <span class="chip c-svc">Capability Detector</span>
+      <span class="chip c-svc">Process Orchestrator</span>
+      <span class="chip c-svc">Auth / Permission Gate</span>
+      <span class="chip c-svc">Event Bus (Redis)</span>
+      <span class="chip c-svc">Config Store</span>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l-domain">
+    <div class="layer-label" style="color:#e3b341;">④ Domain Core — pure logic, no I/O</div>
+    <div class="layer-items">
+      <span class="chip c-domain">Packet Analysis</span>
+      <span class="chip c-domain">Protocol Parsers</span>
+      <span class="chip c-domain">Modbus Frame Logic</span>
+      <span class="chip c-domain">Report Models</span>
+      <span class="chip c-domain">Wizard DSL</span>
+      <span class="chip c-domain">Test Runner Core</span>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l-infra">
+    <div class="layer-label" style="color:#bc8cff;">⑤ Infrastructure Adapters — swappable per device</div>
+    <div class="layer-items">
+      <span class="chip c-infra">LLM: Ollama / CPU / API</span>
+      <span class="chip c-infra">Capture: Npcap / libpcap / mock</span>
+      <span class="chip c-infra">Storage: local / S3 / remote</span>
+      <span class="chip c-infra">IPC: Redis / socket / pipe</span>
+      <span class="chip c-infra">Embeddings: GPU / CPU / API</span>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l-hw">
+    <div class="layer-label" style="color:#f85149;">⑥ Hardware — detected at startup</div>
+    <div class="layer-items">
+      <span class="chip c-hw">CUDA GPU</span>
+      <span class="chip c-hw">CPU-only</span>
+      <span class="chip c-hw">Npcap (Windows)</span>
+      <span class="chip c-hw">libpcap (Linux/Mac)</span>
+      <span class="chip c-hw">No capture (VM)</span>
+      <span class="chip c-hw">Cloud LLM</span>
+    </div>
+  </div>
+
+</div>
+
+<hr class="divider">
+
+<!-- MODULE MANIFESTS -->
+<h2>Feature Module Manifests — install-time selection</h2>
+<p style="color:#8b949e;font-size:11px;margin-bottom:12px;">Each module declares what it needs. Setup wizard only shows modules the device can run.</p>
+
+<div class="grid3" style="margin-bottom:20px;">
+
+  <div class="module-card">
+    <span class="module-badge badge-core">CORE — always installed</span>
+    <h3>capture</h3>
+    <div class="module-row"><span>Requires</span><span>Npcap or libpcap</span></div>
+    <div class="module-row"><span>Privilege</span><span style="color:#f85149;">admin (daemon)</span></div>
+    <div class="module-row"><span>Python deps</span><span>pyshark, scapy</span></div>
+    <div class="module-row"><span>Provides</span><span>live capture, pcap read</span></div>
+  </div>
+
+  <div class="module-card">
+    <span class="module-badge badge-opt">OPTIONAL</span>
+    <h3>llm-agent</h3>
+    <div class="module-row"><span>Requires</span><span>Ollama or API key</span></div>
+    <div class="module-row"><span>GPU mode</span><span style="color:#e3b341;">4GB+ VRAM</span></div>
+    <div class="module-row"><span>CPU mode</span><span style="color:#56d364;">slow but works</span></div>
+    <div class="module-row"><span>Provides</span><span>chat, tool use, skills</span></div>
+  </div>
+
+  <div class="module-card">
+    <span class="module-badge badge-opt">OPTIONAL</span>
+    <h3>rag</h3>
+    <div class="module-row"><span>Requires</span><span>llm-agent</span></div>
+    <div class="module-row"><span>GPU mode</span><span style="color:#e3b341;">GPU embeddings</span></div>
+    <div class="module-row"><span>CPU mode</span><span style="color:#56d364;">CPU embeddings</span></div>
+    <div class="module-row"><span>Python deps</span><span>chromadb, sentence-tf</span></div>
+  </div>
+
+  <div class="module-card">
+    <span class="module-badge badge-opt">OPTIONAL</span>
+    <h3>modbus</h3>
+    <div class="module-row"><span>Requires</span><span>TCP access</span></div>
+    <div class="module-row"><span>Privilege</span><span>user (no admin)</span></div>
+    <div class="module-row"><span>Python deps</span><span>pymodbus</span></div>
+    <div class="module-row"><span>Provides</span><span>sim, client, scan, diag</span></div>
+  </div>
+
+  <div class="module-card">
+    <span class="module-badge badge-gpu">OPTIONAL + GPU preferred</span>
+    <h3>expert-analysis</h3>
+    <div class="module-row"><span>Requires</span><span>llm-agent</span></div>
+    <div class="module-row"><span>GPU mode</span><span style="color:#e3b341;">deep analysis</span></div>
+    <div class="module-row"><span>CPU mode</span><span style="color:#56d364;">quick mode only</span></div>
+    <div class="module-row"><span>Provides</span><span>TCP flows, latency, IDS</span></div>
+  </div>
+
+  <div class="module-card">
+    <span class="module-badge badge-opt">OPTIONAL</span>
+    <h3>reporting</h3>
+    <div class="module-row"><span>Requires</span><span>any analysis module</span></div>
+    <div class="module-row"><span>Privilege</span><span>user</span></div>
+    <div class="module-row"><span>Python deps</span><span>jinja2, weasyprint</span></div>
+    <div class="module-row"><span>Provides</span><span>PDF, HTML, JSON reports</span></div>
+  </div>
+
+</div>
+
+<!-- MANIFEST EXAMPLE -->
+<div class="grid2">
+<div>
+  <h2 style="margin-bottom:8px;">Module manifest (TOML)</h2>
+  <div class="manifest-box">
+<span class="cmt"># modules/modbus/manifest.toml</span>
+[<span class="key">module</span>]
+<span class="key">name</span>    = <span class="str">"modbus"</span>
+<span class="key">version</span> = <span class="str">"1.0.0"</span>
+<span class="key">optional</span> = <span class="kw">true</span>
+
+[<span class="key">requires</span>]
+<span class="key">modules</span>  = []          <span class="cmt"># no deps</span>
+<span class="key">hardware</span> = []          <span class="cmt"># runs on any device</span>
+<span class="key">privilege</span> = <span class="str">"user"</span>   <span class="cmt"># no admin needed</span>
+
+[<span class="key">python</span>]
+<span class="key">packages</span> = [<span class="str">"pymodbus>=3.6"</span>]
+<span class="key">process</span>  = <span class="str">"daemon"</span>   <span class="cmt"># which process hosts it</span>
+
+[<span class="key">provides</span>]
+<span class="key">tools</span>   = [<span class="str">"modbus_read"</span>, <span class="str">"modbus_write"</span>,
+            <span class="str">"modbus_scan"</span>, <span class="str">"modbus_sim"</span>]
+<span class="key">ui</span>      = [<span class="str">"ModbusPanel"</span>, <span class="str">"ModbusDiagnostics"</span>]
+<span class="key">wizards</span> = [<span class="str">"ModbusHealthWizard"</span>]
+<span class="key">reports</span> = [<span class="str">"ModbusAuditReport"</span>]
+  </div>
+</div>
+<div>
+  <h2 style="margin-bottom:8px;">Capability adapter (LLM example)</h2>
+  <div class="manifest-box">
+<span class="cmt"># infrastructure/llm/__init__.py</span>
+<span class="kw">class</span> <span class="key">LLMAdapter</span>(Protocol):
+    <span class="kw">async def</span> complete(prompt, ...) -> str: ...
+    <span class="kw">async def</span> stream(prompt, ...)  -> ...: ...
+
+<span class="cmt"># Detected at startup, injected everywhere</span>
+<span class="kw">def</span> <span class="key">detect_llm</span>(caps: HardwareCaps) -> LLMAdapter:
+    <span class="kw">if</span> caps.cuda_vram_gb >= 6:
+        <span class="kw">return</span> OllamaAdapter()    <span class="cmt"># local GPU</span>
+    <span class="kw">elif</span> caps.ram_gb >= 8:
+        <span class="kw">return</span> LlamaCppAdapter()  <span class="cmt"># CPU-only</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> OpenAIAdapter()    <span class="cmt"># cloud fallback</span>
+
+<span class="cmt"># Same interface — rest of app never knows which</span>
+  </div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- PROCESS MODEL -->
+<h2>Process model — only start what's installed</h2>
+<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px;margin-bottom:20px;">
+  <div style="display:grid;grid-template-columns:110px 160px 1fr 90px;gap:8px;font-size:10px;font-weight:700;text-transform:uppercase;color:#8b949e;padding-bottom:6px;border-bottom:1px solid #21262d;margin-bottom:6px;">
+    <span>Process</span><span>Privilege</span><span>Hosts modules</span><span>Optional?</span>
+  </div>
+  <div class="proc-row">
+    <span class="proc-name" style="color:#58a6ff;">gateway</span>
+    <span><span class="priv-badge priv-user">user</span></span>
+    <span style="color:#8b949e;">HTTP/WS server, state, scheduler, channels, net tools</span>
+    <span style="color:#56d364;">no — always</span>
+  </div>
+  <div class="proc-row">
+    <span class="proc-name" style="color:#f85149;">daemon</span>
+    <span><span class="priv-badge priv-admin">admin</span></span>
+    <span style="color:#8b949e;">capture, modbus, ICS/DNP3, subnet scanner, exec tool</span>
+    <span style="color:#e3b341;">yes — if no cap modules installed, skip</span>
+  </div>
+  <div class="proc-row">
+    <span class="proc-name" style="color:#56d364;">engine</span>
+    <span><span class="priv-badge priv-user">user</span></span>
+    <span style="color:#8b949e;">LLM agent, RAG, expert analysis, skills, reporting</span>
+    <span style="color:#e3b341;">yes — skip if no llm-agent installed</span>
+  </div>
+  <div class="proc-row">
+    <span class="proc-name" style="color:#bc8cff;">worker</span>
+    <span><span class="priv-badge priv-opt">user</span></span>
+    <span style="color:#8b949e;">long-running tasks: report gen, batch analysis, wizard runs</span>
+    <span style="color:#e3b341;">yes — spawned on demand, exits when idle</span>
+  </div>
+</div>
+
+<!-- CAPABILITY ADAPTERS -->
+<h2>Capability adapters — same interface, device-aware implementation</h2>
+<div class="cap-grid" style="margin-bottom:20px;">
+  <div class="cap-row">
+    <div class="cap-name">LLM Inference</div>
+    <div class="cap-opts">
+      <div class="cap-opt"><div class="dot dot-gpu"></div><span>GPU ≥6GB VRAM → Ollama local (qwen3:8b)</span></div>
+      <div class="cap-opt"><div class="dot dot-cpu"></div><span>CPU / RAM ≥8GB → llama.cpp Q4 quantized</span></div>
+      <div class="cap-opt"><div class="dot dot-cloud"></div><span>No local → OpenAI / Anthropic API</span></div>
+    </div>
+  </div>
+  <div class="cap-row">
+    <div class="cap-name">Embeddings (RAG)</div>
+    <div class="cap-opts">
+      <div class="cap-opt"><div class="dot dot-gpu"></div><span>GPU → sentence-transformers (fast)</span></div>
+      <div class="cap-opt"><div class="dot dot-cpu"></div><span>CPU → sentence-transformers (slow but ok)</span></div>
+      <div class="cap-opt"><div class="dot dot-cloud"></div><span>Minimal → OpenAI text-embedding-3-small</span></div>
+    </div>
+  </div>
+  <div class="cap-row">
+    <div class="cap-name">Packet Capture</div>
+    <div class="cap-opts">
+      <div class="cap-opt"><div class="dot dot-gpu"></div><span>Windows + Npcap → pyshark elevated</span></div>
+      <div class="cap-opt"><div class="dot dot-cpu"></div><span>Linux/Mac → libpcap / tshark</span></div>
+      <div class="cap-opt"><div class="dot dot-off"></div><span>VM / no driver → pcap file import only</span></div>
+    </div>
+  </div>
+  <div class="cap-row">
+    <div class="cap-name">IPC Transport</div>
+    <div class="cap-opts">
+      <div class="cap-opt"><div class="dot dot-gpu"></div><span>Local → Redis Streams (current)</span></div>
+      <div class="cap-opt"><div class="dot dot-cpu"></div><span>No Redis → Unix sockets / named pipes</span></div>
+      <div class="cap-opt"><div class="dot dot-cloud"></div><span>Remote → HTTP/WebSocket (future server mode)</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- WIZARD + REPORT FRAMEWORK -->
+<h2>Wizard & Report framework — composable from tools</h2>
+<div class="grid2">
+<div class="card">
+  <h3>Wizard DSL</h3>
+  <ul style="margin-top:6px;">
+    <li><span>Each wizard is a sequence of steps</span></li>
+    <li><span>Steps call registered tools by name</span></li>
+    <li><span>Tools can be local (Python) or LLM-powered</span></li>
+    <li><span>Wizard definition is a TOML/JSON file — no code</span></li>
+    <li><span>Frontend wizard framework renders steps generically</span></li>
+    <li><span>Result feeds directly into reporting engine</span></li>
+  </ul>
+  <div class="manifest-box" style="margin-top:10px;font-size:10px;">
+<span class="cmt"># wizards/modbus-health.toml</span>
+[[<span class="key">steps</span>]]
+<span class="key">title</span> = <span class="str">"Scan for Modbus devices"</span>
+<span class="key">tool</span>  = <span class="str">"modbus_scan"</span>
+<span class="key">args</span>  = {<span class="key">subnet</span>: <span class="str">"$auto"</span>}
+
+[[<span class="key">steps</span>]]
+<span class="key">title</span> = <span class="str">"Read register baseline"</span>
+<span class="key">tool</span>  = <span class="str">"modbus_read"</span>
+
+[[<span class="key">steps</span>]]
+<span class="key">title</span> = <span class="str">"AI analysis"</span>
+<span class="key">tool</span>  = <span class="str">"llm_analyze"</span>
+<span class="key">prompt</span>= <span class="str">"Assess health of these Modbus devices"</span>
+
+[[<span class="key">steps</span>]]
+<span class="key">title</span> = <span class="str">"Generate report"</span>
+<span class="key">tool</span>  = <span class="str">"report_generate"</span>
+<span class="key">template</span> = <span class="str">"modbus-audit"</span>
+  </div>
+</div>
+<div class="card">
+  <h3>Safety model</h3>
+  <ul style="margin-top:6px;">
+    <li><span>Every tool has a permission level:</span> read / write / exec / dangerous</li>
+    <li><span>Wizards declare max permission they need</span> — user must approve at launch</li>
+    <li><span>Dangerous tools (exec, modbus write)</span> require explicit unlock per session</li>
+    <li><span>All tool calls are audit-logged</span> with timestamp, args, result hash</li>
+    <li><span>Process sandbox:</span> exec tool runs in Daemon (isolated from LLM context)</li>
+    <li><span>No tool can escalate privilege</span> — privilege is fixed at process level</li>
+  </ul>
+  <div style="margin-top:10px;padding:8px 10px;background:#1a0d0d;border:1px solid #5c1a1a;border-radius:6px;font-size:11px;color:#f85149;">
+    <strong>Rule:</strong> LLM never calls privileged tools directly. It sends a <code>tool.request</code> to Daemon over Redis. Daemon validates, executes, and returns sanitized output. LLM context never sees raw exec output.
+  </div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- FRONTEND STRUCTURE -->
+<h2>Frontend module structure</h2>
+<div class="grid2">
+<div class="card">
+  <h3>Feature-based folders (not type-based)</h3>
+  <div class="manifest-box" style="margin-top:8px;">
+<span class="key">frontend/src/</span>
+├── <span class="str">features/</span>
+│   ├── <span class="str">capture/</span>       <span class="cmt"># components + store + api + types</span>
+│   ├── <span class="str">modbus/</span>
+│   ├── <span class="str">llm/</span>
+│   ├── <span class="str">rag/</span>
+│   ├── <span class="str">topology/</span>
+│   └── <span class="str">reporting/</span>
+├── <span class="str">wizards/</span>
+│   ├── <span class="str">WizardEngine.tsx</span>  <span class="cmt"># generic runner</span>
+│   └── <span class="str">definitions/</span>       <span class="cmt"># TOML-loaded</span>
+├── <span class="str">shell/</span>             <span class="cmt"># layout, nav, icon rail</span>
+├── <span class="str">shared/</span>            <span class="cmt"># Toast, hooks, api client</span>
+└── <span class="str">store/</span>             <span class="cmt"># per-feature slices</span>
+  </div>
+</div>
+<div class="card">
+  <h3>Performance patterns</h3>
+  <ul style="margin-top:6px;">
+    <li><span>Lazy import feature modules</span> — React.lazy + Suspense per feature panel</li>
+    <li><span>Virtual lists</span> — @tanstack/virtual for packet table (5,000+ rows)</li>
+    <li><span>WebWorker</span> for packet parsing / protocol coloring (off main thread)</li>
+    <li><span>Zustand slices</span> — each feature owns its store, no global re-renders</span></li>
+    <li><span>WS backpressure</span> — packet stream throttled to 30fps in UI</li>
+    <li><span>Code-split by feature</span> — only load installed modules</li>
+  </ul>
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+# NetScope Capture Daemon dependencies
+# This process requires Administrator privileges for raw packet capture.
+
+# Redis bus
+redis[hiredis]>=5.0
+
+# Packet capture
+pyshark>=0.6
+scapy>=2.5.0
+
+# Modbus TCP
+pymodbus>=3.6.0
+pyserial>=3.5
+
+# Config
+pydantic>=2.7.1
+pydantic-settings>=2.2.1
+python-dotenv>=1.0.1
+
+# Utilities
+openpyxl>=3.1.0

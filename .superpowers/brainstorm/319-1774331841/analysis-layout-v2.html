@@ -1,0 +1,128 @@
+<h2>Where does the Analysis panel live?</h2>
+<p class="subtitle">Each option shows a full app wireframe. The blue highlighted area is where the new analysis lives.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>New dedicated "Analysis" tab</h3>
+      <p>Analysis gets its own full tab — completely separate from the current insights/chat view.</p>
+      <div style="margin-top:14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;">
+        <!-- Tab bar -->
+        <div style="display:flex;gap:0;background:#161b22;border-bottom:1px solid #30363d;padding:0 8px;">
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Dashboard</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Capture</div>
+          <div style="padding:8px 12px;font-size:10px;color:#fff;font-family:monospace;background:#0d1117;border-top:2px solid #388bfd;margin-top:2px;">⬡ Analysis</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">RAG</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Tools</div>
+        </div>
+        <!-- Full tab content -->
+        <div style="padding:12px;min-height:160px;">
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+            <span style="font-size:10px;color:#8b949e;font-family:monospace;">MODE:</span>
+            <span style="background:#1f6feb;color:#fff;padding:3px 10px;border-radius:4px;font-size:10px;font-family:monospace;">⚡ Quick</span>
+            <span style="background:#21262d;color:#8b949e;padding:3px 10px;border-radius:4px;font-size:10px;font-family:monospace;">🔬 Deep</span>
+            <span style="margin-left:auto;background:#238636;color:#fff;padding:3px 10px;border-radius:4px;font-size:10px;font-family:monospace;">▶ Run Analysis</span>
+          </div>
+          <!-- Report sections -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div style="background:#161b22;border:1px solid #388bfd;border-radius:4px;padding:8px;">
+              <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:4px;">TCP HEALTH</div>
+              <div style="font-size:9px;color:#8b949e;font-family:monospace;">Retransmissions: 42<br>Zero Windows: 3<br>RSTs: 7</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #388bfd;border-radius:4px;padding:8px;">
+              <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:4px;">LATENCY</div>
+              <div style="font-size:9px;color:#8b949e;font-family:monospace;">Client: 12ms<br>Network RTT: 4ms<br>Server: 88ms</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #388bfd;border-radius:4px;padding:8px;">
+              <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:4px;">STREAMS</div>
+              <div style="font-size:9px;color:#8b949e;font-family:monospace;">14 TCP streams<br>3 UDP flows</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #388bfd;border-radius:4px;padding:8px;">
+              <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:4px;">EXPERT INFO</div>
+              <div style="font-size:9px;color:#d29922;font-family:monospace;">⚠ 5 warnings<br>✕ 2 errors</div>
+            </div>
+          </div>
+          <div style="margin-top:6px;background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:4px;">NARRATIVE</div>
+            <div style="font-size:9px;color:#8b949e;font-family:monospace;">The capture shows a sluggish HTTP session between 192.168.1.5 and 10.0.0.1. Server response time (88ms avg) is the bottleneck — not the network...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Mode toggle inside existing Insights panel</h3>
+      <p>The current dashboard stays. Insights panel gets Quick/Deep added to existing mode buttons. No new tab.</p>
+      <div style="margin-top:14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;">
+        <!-- Tab bar -->
+        <div style="display:flex;gap:0;background:#161b22;border-bottom:1px solid #30363d;padding:0 8px;">
+          <div style="padding:8px 12px;font-size:10px;color:#fff;font-family:monospace;background:#0d1117;border-top:2px solid #388bfd;margin-top:2px;">Dashboard</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Capture</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">RAG</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Tools</div>
+        </div>
+        <!-- Dashboard layout with InsightPanel highlighted -->
+        <div style="display:flex;gap:6px;padding:10px;min-height:160px;">
+          <!-- Packets side -->
+          <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;color:#8b949e;font-family:monospace;">PACKETS</div>
+            <div style="font-size:8px;color:#484f58;font-family:monospace;margin-top:4px;">1  192.168.1.1 → 10.0.0.1  TCP<br>2  10.0.0.1 → 192.168.1.1  HTTP<br>3  192.168.1.1 → 8.8.8.8   DNS<br>...</div>
+          </div>
+          <!-- Insights panel highlighted -->
+          <div style="flex:1;background:#161b22;border:2px solid #388bfd;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:6px;">INSIGHTS ← new modes here</div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="background:#21262d;color:#8b949e;padding:2px 5px;border-radius:3px;font-size:8px;font-family:monospace;">General</span>
+              <span style="background:#21262d;color:#8b949e;padding:2px 5px;border-radius:3px;font-size:8px;font-family:monospace;">Security</span>
+              <span style="background:#21262d;color:#8b949e;padding:2px 5px;border-radius:3px;font-size:8px;font-family:monospace;">ICS</span>
+              <span style="background:#1f6feb;color:#fff;padding:2px 5px;border-radius:3px;font-size:8px;font-family:monospace;">⚡Quick</span>
+              <span style="background:#d29922;color:#000;padding:2px 5px;border-radius:3px;font-size:8px;font-family:monospace;">🔬Deep</span>
+            </div>
+            <div style="font-size:8px;color:#8b949e;font-family:monospace;">TCP: 42 retransmit, 3 zero-win<br>Latency: server 88ms avg<br>⚠ 5 expert warnings...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Right-side drawer, always accessible</h3>
+      <p>A persistent button in the toolbar opens/closes a side drawer that overlays the current view. Works from any tab.</p>
+      <div style="margin-top:14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;">
+        <!-- Tab bar + toolbar button -->
+        <div style="display:flex;gap:0;background:#161b22;border-bottom:1px solid #30363d;padding:0 8px;align-items:center;">
+          <div style="padding:8px 12px;font-size:10px;color:#fff;font-family:monospace;background:#0d1117;border-top:2px solid #388bfd;margin-top:2px;">Dashboard</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">Capture</div>
+          <div style="padding:8px 12px;font-size:10px;color:#8b949e;font-family:monospace;">RAG</div>
+          <div style="margin-left:auto;background:#1f6feb;color:#fff;padding:3px 10px;border-radius:4px;font-size:9px;font-family:monospace;margin-right:4px;">⬡ Analyze</div>
+        </div>
+        <!-- App + drawer overlay -->
+        <div style="display:flex;gap:0;min-height:160px;">
+          <!-- Main app (dimmed) -->
+          <div style="flex:1;padding:10px;opacity:0.4;">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px;height:100%;">
+              <div style="font-size:9px;color:#8b949e;font-family:monospace;">Main app view (packets, chat)</div>
+            </div>
+          </div>
+          <!-- Drawer -->
+          <div style="width:160px;background:#161b22;border-left:2px solid #388bfd;padding:10px;">
+            <div style="font-size:9px;color:#388bfd;font-family:monospace;margin-bottom:8px;">⬡ ANALYSIS</div>
+            <div style="display:flex;gap:4px;margin-bottom:8px;">
+              <span style="background:#1f6feb;color:#fff;padding:2px 6px;border-radius:3px;font-size:8px;font-family:monospace;">⚡Quick</span>
+              <span style="background:#21262d;color:#8b949e;padding:2px 6px;border-radius:3px;font-size:8px;font-family:monospace;">🔬Deep</span>
+            </div>
+            <div style="font-size:8px;color:#8b949e;font-family:monospace;line-height:1.6;">TCP Health<br>Retransmit: 42<br>Zero-win: 3<br><br>Latency<br>Server: 88ms<br><br>⚠ 5 warnings</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

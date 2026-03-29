@@ -1,0 +1,28 @@
+[module]
+name = "capture"
+version = "1.0.0"
+description = "Live packet capture and PCAP analysis"
+optional = false
+process = "daemon"
+
+[requires]
+privilege = "admin"
+
+[requires.hardware]
+needs_npcap = true
+
+[python]
+packages = ["pyshark", "scapy"]
+process = "daemon"
+
+[provides]
+tools = ["capture_start", "capture_stop", "capture_status", "list_interfaces", "read_pcap"]
+ui = ["PacketsAndInsights", "FilterBar", "PacketTable", "CaptureManager", "PcapUpload"]
+
+[provides.nav]
+sidebar_section = "Capture"
+sidebar_label = "Packets & Insights"
+
+[safety]
+max_permission = "exec"
+audit_log = true

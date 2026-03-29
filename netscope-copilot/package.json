@@ -1,0 +1,108 @@
+{
+  "name": "netscope",
+  "version": "1.0.0",
+  "description": "AI-powered SCADA & ICS network analysis desktop app",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start":           "npm run build:frontend && electron .",
+    "start:dev":       "electron .",
+    "build:frontend":  "cd frontend && npm install && npm run build",
+    "prefetch":        "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/fetch_vendors.ps1",
+    "build":           "npm run prefetch && npm run build:frontend && electron-builder --win --x64",
+    "build:mac":       "npm run build:frontend && electron-builder --mac",
+    "build:linux":     "npm run build:frontend && electron-builder --linux",
+    "postinstall":     "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId":       "com.netscope.app",
+    "productName": "NetScope",
+    "copyright":   "Copyright 2024",
+    "asar": true,
+    "asarUnpack": [
+      "backend/**/*",
+      "frontend/dist/**/*",
+      "vendor/**/*"
+    ],
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "frontend/dist/**/*",
+      "vendor/**/*",
+      "node_modules/**/*",
+      "!backend/venv/**/*",
+      "!backend/__pycache__/**/*",
+      "!backend/.pytest_cache/**/*",
+      "!backend/**/*.pyc",
+      "!backend/backend.log",
+      "!backend/backend_err.log",
+      "!backend/.pyembed/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to":   "backend",
+        "filter": [
+          "**/*",
+          "!venv/**",
+          "!.venv/**",
+          "!.pyembed/**",
+          "!__pycache__/**",
+          "!.pytest_cache/**",
+          "!**/*.pyc",
+          "!backend.log",
+          "!backend_err.log"
+        ]
+      },
+      {
+        "from": "frontend/dist",
+        "to":   "frontend/dist"
+      },
+      {
+        "from": "vendor",
+        "to":   "vendor"
+      }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "Network"
+    },
+    "nsis": {
+      "oneClick":           false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NetScope",
+      "installerIcon":       "assets/icon.ico",
+      "uninstallerIcon":     "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "license": "assets/LICENSE.txt",
+      "installerSidebar":  "assets/installer-sidebar.bmp",
+      "uninstallerSidebar": "assets/installer-sidebar.bmp"
+    },
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "assets"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "electron":         "^31.0.0",
+    "electron-builder": "^24.13.0"
+  }
+}

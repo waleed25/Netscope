@@ -1,0 +1,27 @@
+[module]
+name = "ics-dnp3"
+version = "1.0.0"
+description = "ICS/DNP3 protocol parsing and analysis"
+optional = true
+process = "daemon"
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+
+[python]
+packages = []
+process = "daemon"
+
+[provides]
+tools = ["dnp3_parse", "dnp3_analyze"]
+ui = ["DNP3Panel"]
+
+[provides.nav]
+sidebar_section = "Tools"
+sidebar_label = "ICS / DNP3"
+
+[safety]
+max_permission = "read"
+audit_log = true

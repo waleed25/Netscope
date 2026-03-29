@@ -1,0 +1,28 @@
+[module]
+name = "modbus"
+version = "1.0.0"
+description = "Modbus TCP simulator, client, scanner, and diagnostics"
+optional = true
+process = "daemon"
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+ram_gb_min = 1
+
+[python]
+packages = ["pymodbus>=3.6"]
+process = "daemon"
+
+[provides]
+tools = ["modbus_sim_create", "modbus_sim_read", "modbus_sim_write", "modbus_client_create", "modbus_client_read", "modbus_write_multi", "modbus_scan", "modbus_diagnostics", "sunspec_discover"]
+ui = ["ModbusPanel", "ModbusDiagnostics"]
+
+[provides.nav]
+sidebar_section = "Tools"
+sidebar_label = "Modbus"
+
+[safety]
+max_permission = "write"
+audit_log = true

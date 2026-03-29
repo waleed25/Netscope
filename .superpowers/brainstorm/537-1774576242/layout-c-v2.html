@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Netscope – Layout Redesign</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── CHROME ── */
+  .titlebar {
+    background: #0d0d1a;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #1e2433;
+    flex-shrink: 0;
+  }
+  .titlebar-logo { color: #60a5fa; font-weight: 700; font-size: 13px; letter-spacing: .05em; }
+  .titlebar-sep { color: #2d3748; }
+
+  /* ── MAIN SHELL ── */
+  .shell { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── ICON RAIL ── */
+  .rail {
+    width: 52px;
+    background: #0d0d1a;
+    border-right: 1px solid #1e2433;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0 8px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .rail-icon {
+    width: 38px; height: 38px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .15s; color: #4a5568;
+    font-size: 17px; position: relative;
+  }
+  .rail-icon:hover { background: #1e2433; color: #94a3b8; }
+  .rail-icon.active { background: #1e3a5f; color: #60a5fa; }
+  .rail-icon.active::before {
+    content: '';
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 20px; background: #3b82f6; border-radius: 0 2px 2px 0;
+  }
+  .rail-spacer { flex: 1; }
+  .rail-divider { width: 28px; height: 1px; background: #1e2433; margin: 4px 0; }
+
+  /* ── CAPTURE VIEW ── */
+  .capture-view { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0a14; }
+
+  /* Toolbar */
+  .toolbar {
+    background: #0d0d1a;
+    border-bottom: 1px solid #1e2433;
+    padding: 5px 12px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .btn {
+    border: none; border-radius: 5px; padding: 4px 12px; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; font-weight: 500; white-space: nowrap;
+  }
+  .btn-primary { background: #1d4ed8; color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger { background: #7f1d1d; color: #fca5a5; }
+  .btn-ghost { background: transparent; color: #6b7280; border: 1px solid #1e2433; }
+  .btn-ghost:hover { background: #1e2433; color: #94a3b8; }
+  .iface-select {
+    background: #1e2433; color: #94a3b8; border: 1px solid #2d3748;
+    border-radius: 5px; padding: 4px 8px; font-size: 11px;
+  }
+  .toolbar-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .llm-badge {
+    font-size: 10px; color: #4a5568; background: #111827;
+    border: 1px solid #1e2433; border-radius: 4px; padding: 2px 8px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #22c55e; box-shadow: 0 0 6px #22c55e;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Filter bar */
+  .filterbar {
+    background: #0d0d1a; border-bottom: 1px solid #1e2433;
+    padding: 5px 12px; display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+  }
+  .filter-input {
+    flex: 1; background: #111827; color: #e2e8f0;
+    border: 1px solid #1e2433; border-radius: 5px;
+    padding: 4px 10px; font-size: 11px; font-family: 'Consolas', 'JetBrains Mono', monospace;
+  }
+  .filter-input:focus { outline: none; border-color: #3b82f6; background: #0f172a; }
+  .filter-input::placeholder { color: #374151; }
+  .filter-tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    background: #1e3a5f; color: #60a5fa; border: 1px solid #1e40af; cursor: pointer;
+  }
+
+  /* ── WIRESHARK PACKET TABLE ── */
+  .packet-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  .pkt-header {
+    display: grid;
+    grid-template-columns: 52px 72px 138px 138px 62px 62px 1fr;
+    background: #111827; border-bottom: 1px solid #1e2433;
+    padding: 0; flex-shrink: 0;
+  }
+  .pkt-header div {
+    padding: 4px 6px; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em; color: #4b5563;
+    border-right: 1px solid #1e2433; user-select: none; cursor: col-resize;
+  }
+  .pkt-header div:last-child { border-right: none; }
+
+  .pkt-rows { flex: 1; overflow-y: auto; }
+  .pkt-rows::-webkit-scrollbar { width: 6px; }
+  .pkt-rows::-webkit-scrollbar-track { background: #0a0a14; }
+  .pkt-rows::-webkit-scrollbar-thumb { background: #1e2433; border-radius: 3px; }
+
+  .pkt-row {
+    display: grid;
+    grid-template-columns: 52px 72px 138px 138px 62px 62px 1fr;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    cursor: pointer; transition: filter .1s;
+  }
+  .pkt-row:hover { filter: brightness(1.3); }
+  .pkt-row.selected { outline: 2px solid #3b82f6; outline-offset: -1px; filter: brightness(1.3); }
+  .pkt-row div {
+    padding: 3px 6px; font-size: 11px;
+    font-family: 'Consolas', 'JetBrains Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Wireshark-style row coloring */
+  .row-tcp      { background: #1a2535; color: #c8d8f0; }
+  .row-udp      { background: #1a2035; color: #c8c8f0; }
+  .row-tls      { background: #1e1835; color: #d0c8f0; }
+  .row-dns      { background: #0f2018; color: #c0e8d0; }
+  .row-http     { background: #162030; color: #b8d8e8; }
+  .row-error    { background: #2d1515; color: #f4b8b8; }
+  .row-warn     { background: #2a1e10; color: #f4d8b8; }
+  .row-arp      { background: #1a1a0f; color: #e8e8b8; }
+  .row-icmp     { background: #1a2020; color: #b8e0e0; }
+
+  .proto-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    font-family: 'Consolas', monospace; letter-spacing: .02em;
+  }
+  .proto-tcp  { color: #93c5fd; }
+  .proto-tls  { color: #c4b5fd; }
+  .proto-dns  { color: #6ee7b7; }
+  .proto-http { color: #67e8f9; }
+  .proto-udp  { color: #a5b4fc; }
+  .proto-err  { color: #fca5a5; }
+  .proto-warn { color: #fcd34d; }
+  .proto-arp  { color: #fde68a; }
+  .proto-icmp { color: #6ee7b7; }
+
+  /* Status bar */
+  .statusbar {
+    background: #0d0d1a; border-top: 1px solid #1e2433;
+    padding: 3px 12px; display: flex; gap: 16px; align-items: center; flex-shrink: 0;
+  }
+  .statusbar span { font-size: 10px; color: #4b5563; }
+  .statusbar .s-packets { color: #60a5fa; }
+  .statusbar .s-error   { color: #f87171; }
+  .statusbar .s-bytes   { color: #6b7280; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    width: 320px; flex-shrink: 0; border-left: 1px solid #1e2433;
+    display: flex; flex-direction: column; background: #0d0d1a;
+  }
+
+  /* Panel tabs */
+  .panel-tabs {
+    display: flex; border-bottom: 1px solid #1e2433; flex-shrink: 0; background: #0a0a14;
+  }
+  .ptab {
+    flex: 1; padding: 7px 4px; font-size: 11px; border: none;
+    background: transparent; color: #4b5563; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .ptab.active { color: #60a5fa; border-bottom-color: #3b82f6; background: #0d0d1a; }
+  .ptab:hover:not(.active) { color: #94a3b8; background: #0f1117; }
+
+  /* Analysis strip (collapsible) */
+  .analysis-strip {
+    border-bottom: 1px solid #1e2433; flex-shrink: 0;
+  }
+  .analysis-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; cursor: pointer;
+    background: linear-gradient(90deg, #0d1f12 0%, #0d0d1a 100%);
+  }
+  .analysis-header:hover { background: linear-gradient(90deg, #112216 0%, #111827 100%); }
+  .analysis-title { font-size: 10px; font-weight: 600; color: #22c55e; display: flex; align-items: center; gap: 5px; }
+  .analysis-chevron { font-size: 10px; color: #4b5563; }
+  .analysis-pills { display: flex; gap: 5px; padding: 5px 10px 7px; flex-wrap: wrap; background: #0a0a14; }
+  .pill {
+    font-size: 10px; padding: 2px 8px; border-radius: 20px; cursor: pointer;
+    font-family: 'Consolas', monospace; font-weight: 500; white-space: nowrap;
+    transition: filter .1s;
+  }
+  .pill:hover { filter: brightness(1.2); }
+  .pill-red  { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+  .pill-grn  { background: #052e16; color: #6ee7b7; border: 1px solid #14532d; }
+  .pill-pur  { background: #2e1065; color: #c4b5fd; border: 1px solid #4c1d95; }
+  .pill-yel  { background: #422006; color: #fcd34d; border: 1px solid #78350f; }
+  .pill-blue { background: #0c1a3d; color: #93c5fd; border: 1px solid #1e3a8a; }
+
+  /* Chat messages */
+  .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: #1e2433; border-radius: 2px; }
+
+  .msg-bot {
+    background: #111827; border-radius: 0 8px 8px 8px;
+    padding: 8px 10px; font-size: 11px; color: #94a3b8; line-height: 1.6;
+    border-left: 2px solid #3b82f6; max-width: 95%;
+  }
+  .msg-bot-name { font-size: 9px; color: #3b82f6; font-weight: 600; margin-bottom: 3px; letter-spacing: .05em; text-transform: uppercase; }
+  .msg-user {
+    background: #1e3a5f; border-radius: 8px 0 8px 8px;
+    padding: 8px 10px; font-size: 11px; color: #bfdbfe; line-height: 1.6;
+    align-self: flex-end; max-width: 88%;
+  }
+  strong.hl-red  { color: #fca5a5; }
+  strong.hl-grn  { color: #6ee7b7; }
+  strong.hl-yel  { color: #fcd34d; }
+
+  /* Suggested prompts */
+  .prompt-chips { display: flex; gap: 5px; padding: 6px 10px; flex-wrap: wrap; border-top: 1px solid #1e2433; flex-shrink: 0; background: #0a0a14; }
+  .chip {
+    font-size: 10px; padding: 3px 9px; border-radius: 20px;
+    background: #111827; color: #6b7280; border: 1px solid #1e2433; cursor: pointer;
+    white-space: nowrap; transition: all .15s;
+  }
+  .chip:hover { background: #1e2433; color: #94a3b8; border-color: #374151; }
+
+  /* Chat input */
+  .chat-input-area { padding: 8px 10px 10px; border-top: 1px solid #1e2433; flex-shrink: 0; background: #0d0d1a; }
+  .chat-input-row { display: flex; gap: 6px; align-items: flex-end; }
+  .chat-textarea {
+    flex: 1; background: #111827; color: #e2e8f0; border: 1px solid #1e2433;
+    border-radius: 8px; padding: 7px 10px; font-size: 11px; resize: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.4; min-height: 34px;
+  }
+  .chat-textarea:focus { outline: none; border-color: #3b82f6; }
+  .chat-textarea::placeholder { color: #374151; }
+  .send-btn {
+    width: 34px; height: 34px; background: #1d4ed8; border: none;
+    border-radius: 8px; color: #fff; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s; flex-shrink: 0;
+  }
+  .send-btn:hover { background: #2563eb; }
+
+  /* Question label at top */
+  .question-bar {
+    background: #0a0a14; border-bottom: 1px solid #1e2433;
+    padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .question-label { font-size: 12px; color: #94a3b8; }
+  .question-label strong { color: #e2e8f0; }
+  .approve-btn {
+    background: #065f46; color: #6ee7b7; border: 1px solid #14532d;
+    border-radius: 5px; padding: 4px 14px; font-size: 11px; cursor: pointer;
+    font-weight: 600; transition: background .15s;
+  }
+  .approve-btn:hover { background: #047857; }
+  .tweak-btn {
+    background: transparent; color: #6b7280; border: 1px solid #1e2433;
+    border-radius: 5px; padding: 4px 14px; font-size: 11px; cursor: pointer; margin-left: 6px;
+  }
+
+  /* Tooltip */
+  .tooltip { position: relative; }
+  .tooltip::after {
+    content: attr(data-tip); position: absolute; left: 110%; top: 50%; transform: translateY(-50%);
+    background: #1e2433; color: #e2e8f0; font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s;
+    border: 1px solid #2d3748; z-index: 10;
+  }
+  .tooltip:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Question bar -->
+<div class="question-bar">
+  <span class="question-label">Does this layout feel right? <strong>Wireshark-style packet table · persistent chat · 5-icon rail</strong></span>
+  <div style="display:flex; gap:0;">
+    <button class="approve-btn" onclick="window._choice='approve'; this.textContent='✓ Selected'; this.style.background='#047857';">✓ Looks right</button>
+    <button class="tweak-btn" onclick="window._choice='tweak'; this.textContent='Selected'; this.style.color='#e2e8f0';">~ Tweak it</button>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- Icon Rail -->
+  <div class="rail">
+    <div class="rail-icon active tooltip" data-tip="Capture">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="rail-icon tooltip" data-tip="Analysis">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="rail-icon tooltip" data-tip="Traffic Map">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </div>
+    <div class="rail-icon tooltip" data-tip="Protocols (Modbus, OPC-UA…)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    </div>
+    <div class="rail-spacer"></div>
+    <div class="rail-divider"></div>
+    <div class="rail-icon tooltip" data-tip="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+  </div>
+
+  <!-- Capture View -->
+  <div class="capture-view">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button class="btn btn-primary">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Start
+      </button>
+      <button class="btn btn-danger">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
+        Stop
+      </button>
+      <div style="width:1px; height:18px; background:#1e2433; margin:0 2px;"></div>
+      <select class="iface-select">
+        <option>eth0 — Ethernet</option>
+        <option>wlan0 — Wi-Fi</option>
+        <option>lo — Loopback</option>
+      </select>
+      <div class="live-dot" style="margin-left:4px;"></div>
+      <span style="font-size:10px; color:#22c55e; font-weight:600;">LIVE</span>
+
+      <div class="toolbar-right">
+        <button class="btn btn-ghost">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import
+        </button>
+        <button class="btn btn-ghost">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Captures
+        </button>
+        <div style="width:1px; height:18px; background:#1e2433;"></div>
+        <span class="llm-badge">🤖 qwen2.5:3b</span>
+        <button class="btn btn-ghost" style="padding:4px 8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filterbar">
+      <input class="filter-input" placeholder="Apply a display filter … (e.g. tcp.analysis.retransmission or ip.addr == 10.0.0.1)" value="tcp.analysis.retransmission" />
+      <span class="filter-tag">tcp.retr</span>
+      <span class="filter-tag" style="background:#1a1535; color:#c4b5fd; border-color:#4c1d95;">TLS</span>
+      <button class="btn btn-ghost" style="padding:3px 8px; font-size:10px;">✕</button>
+    </div>
+
+    <!-- Packet table -->
+    <div class="packet-area">
+      <div class="pkt-header">
+        <div>No.</div>
+        <div>Time</div>
+        <div>Source</div>
+        <div>Destination</div>
+        <div>Protocol</div>
+        <div>Length</div>
+        <div>Info</div>
+      </div>
+      <div class="pkt-rows">
+        <!-- TCP SYN -->
+        <div class="pkt-row row-tcp selected">
+          <div>1</div><div>0.000000</div><div>192.168.1.5</div><div>10.0.0.1</div>
+          <div><span class="proto-badge proto-tcp">TCP</span></div><div>74</div>
+          <div>54321 → 443 [SYN] Seq=0 Win=64240 Len=0 MSS=1460</div>
+        </div>
+        <!-- TCP SYN-ACK -->
+        <div class="pkt-row row-tcp">
+          <div>2</div><div>0.006183</div><div>10.0.0.1</div><div>192.168.1.5</div>
+          <div><span class="proto-badge proto-tcp">TCP</span></div><div>74</div>
+          <div>443 → 54321 [SYN, ACK] Seq=0 Ack=1 Win=65535 Len=0</div>
+        </div>
+        <!-- TLS Client Hello -->
+        <div class="pkt-row row-tls">
+          <div>3</div><div>0.006412</div><div>192.168.1.5</div><div>10.0.0.1</div>
+          <div><span class="proto-badge proto-tls">TLSv1.3</span></div><div>583</div>
+          <div>Client Hello (SNI=example.com)</div>
+        </div>
+        <!-- TLS Server Hello -->
+        <div class="pkt-row row-tls">
+          <div>4</div><div>0.048271</div><div>10.0.0.1</div><div>192.168.1.5</div>
+          <div><span class="proto-badge proto-tls">TLSv1.3</span></div><div>1434</div>
+          <div>Server Hello, Change Cipher Spec, Encrypted Extensions, Certificate</div>
+        </div>
+        <!-- DNS -->
+        <div class="pkt-row row-dns">
+          <div>5</div><div>0.052004</div><div>192.168.1.5</div><div>192.168.1.1</div>
+          <div><span class="proto-badge proto-dns">DNS</span></div><div>78</div>
+          <div>Standard query 0x1a2b A api.example.com</div>
+        </div>
+        <!-- DNS Response -->
+        <div class="pkt-row row-dns">
+          <div>6</div><div>0.054812</div><div>192.168.1.1</div><div>192.168.1.5</div>
+          <div><span class="proto-badge proto-dns">DNS</span></div><div>110</div>
+          <div>Standard query response 0x1a2b A api.example.com A 93.184.216.34</div>
+        </div>
+        <!-- TCP Retransmission -->
+        <div class="pkt-row row-error">
+          <div>7</div><div>0.140319</div><div>192.168.1.5</div><div>10.0.0.1</div>
+          <div><span class="proto-badge proto-err">TCP</span></div><div>1434</div>
+          <div>[TCP Retransmission] 54321 → 443 [ACK] Seq=517 Ack=3791</div>
+        </div>
+        <!-- TCP Zero Window -->
+        <div class="pkt-row row-warn">
+          <div>8</div><div>0.142100</div><div>10.0.0.1</div><div>192.168.1.5</div>
+          <div><span class="proto-badge proto-warn">TCP</span></div><div>66</div>
+          <div>[TCP ZeroWindow] 443 → 54321 [ACK] Win=0</div>
+        </div>
+        <!-- HTTP -->
+        <div class="pkt-row row-http">
+          <div>9</div><div>0.201004</div><div>192.168.1.5</div><div>93.184.216.34</div>
+          <div><span class="proto-badge proto-http">HTTP</span></div><div>412</div>
+          <div>GET /api/v2/status HTTP/1.1</div>
+        </div>
+        <!-- HTTP 200 -->
+        <div class="pkt-row row-http">
+          <div>10</div><div>0.247882</div><div>93.184.216.34</div><div>192.168.1.5</div>
+          <div><span class="proto-badge proto-http">HTTP</span></div><div>892</div>
+          <div>HTTP/1.1 200 OK  (application/json)</div>
+        </div>
+        <!-- Dup ACK -->
+        <div class="pkt-row row-warn">
+          <div>11</div><div>0.248001</div><div>192.168.1.5</div><div>10.0.0.1</div>
+          <div><span class="proto-badge proto-warn">TCP</span></div><div>66</div>
+          <div>[TCP Dup ACK 7#1] 54321 → 443 [ACK] Seq=517 Ack=3791</div>
+        </div>
+        <!-- ARP -->
+        <div class="pkt-row row-arp">
+          <div>12</div><div>0.310042</div><div>192.168.1.100</div><div>Broadcast</div>
+          <div><span class="proto-badge proto-arp">ARP</span></div><div>42</div>
+          <div>Who has 192.168.1.1? Tell 192.168.1.100</div>
+        </div>
+        <!-- More TCP -->
+        <div class="pkt-row row-tcp"><div>13</div><div>0.315200</div><div>192.168.1.5</div><div>10.0.0.1</div><div><span class="proto-badge proto-tcp">TCP</span></div><div>1434</div><div>54321 → 443 [ACK] Seq=1951 Ack=8201 Win=32768 Len=1368</div></div>
+        <div class="pkt-row row-tcp"><div>14</div><div>0.316001</div><div>10.0.0.1</div><div>192.168.1.5</div><div><span class="proto-badge proto-tcp">TCP</span></div><div>66</div><div>443 → 54321 [ACK] Seq=8201 Ack=3319 Win=64512</div></div>
+        <div class="pkt-row row-error"><div>15</div><div>0.440183</div><div>192.168.1.5</div><div>10.0.0.1</div><div><span class="proto-badge proto-err">TCP</span></div><div>1434</div><div>[TCP Retransmission] 54321 → 443 Seq=1951 (suspected lost)</div></div>
+      </div>
+    </div>
+
+    <!-- Statusbar -->
+    <div class="statusbar">
+      <span class="s-packets">15 packets</span>
+      <span class="s-error">3 retransmissions</span>
+      <span class="s-bytes">14.2 KB captured</span>
+      <span style="margin-left:auto;">Displaying 15 of 15 packets</span>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="panel-tabs">
+      <button class="ptab active">💬 Chat</button>
+      <button class="ptab">⚡ Quick</button>
+      <button class="ptab">🔬 Deep</button>
+    </div>
+
+    <!-- Analysis strip (collapsed) -->
+    <div class="analysis-strip">
+      <div class="analysis-header">
+        <div class="analysis-title">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Deep Analysis · 4s ago
+        </div>
+        <span class="analysis-chevron">▼ expand</span>
+      </div>
+      <div class="analysis-pills">
+        <span class="pill pill-red">42 retransmit</span>
+        <span class="pill pill-yel">3 zero-win</span>
+        <span class="pill pill-pur">server 85%</span>
+        <span class="pill pill-grn">RTT 4.2ms</span>
+        <span class="pill pill-blue">7 RSTs</span>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-messages">
+      <div class="msg-bot">
+        <div class="msg-bot-name">⬡ NETSCOPE</div>
+        Deep analysis complete. <strong class="hl-red">42 retransmissions</strong> and <strong class="hl-yel">3 zero-window events</strong> detected — the server at <code style="color:#93c5fd; background:#0c1a3d; padding:1px 4px; border-radius:3px;">10.0.0.1:443</code> is responsible for <strong class="hl-red">85%</strong> of observed latency. Average RTT is healthy at <strong class="hl-grn">4.2ms</strong>, ruling out network path issues.
+      </div>
+      <div class="msg-user">
+        What's causing the zero-window events?
+      </div>
+      <div class="msg-bot">
+        <div class="msg-bot-name">⬡ NETSCOPE</div>
+        The zero-window events on stream 0 indicate the server's TCP receive buffer is filling up faster than the application is reading from it. This is a classic <strong class="hl-yel">server-side backpressure</strong> symptom — the socket buffer fills, the server advertises Win=0, and the client is forced to wait. Combined with the retransmissions, the server process is likely CPU or I/O bound.
+      </div>
+    </div>
+
+    <!-- Suggested prompts -->
+    <div class="prompt-chips">
+      <span class="chip">Follow stream 0</span>
+      <span class="chip">Top talkers?</span>
+      <span class="chip">Why so many RSTs?</span>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <textarea class="chat-textarea" placeholder="Ask about your traffic…" rows="1"></textarea>
+        <button class="send-btn">↑</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Make rows interactive
+  document.querySelectorAll('.pkt-row').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.pkt-row').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+    });
+  });
+  // Make tabs interactive
+  document.querySelectorAll('.ptab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+  // Rail icons
+  document.querySelectorAll('.rail-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+      document.querySelectorAll('.rail-icon').forEach(i => i.classList.remove('active'));
+      icon.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

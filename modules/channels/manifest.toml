@@ -1,0 +1,27 @@
+[module]
+name = "channels"
+version = "1.0.0"
+description = "Real-time data channel monitoring"
+optional = true
+process = "gateway"
+
+[requires]
+privilege = "user"
+
+[requires.hardware]
+
+[python]
+packages = []
+process = "gateway"
+
+[provides]
+tools = []
+ui = ["ChannelsPanel"]
+
+[provides.nav]
+sidebar_section = "System"
+sidebar_label = "Channels"
+
+[safety]
+max_permission = "read"
+audit_log = false

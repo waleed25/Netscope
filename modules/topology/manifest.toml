@@ -1,0 +1,28 @@
+[module]
+name = "topology"
+version = "1.0.0"
+description = "Network topology discovery and visualization"
+optional = true
+process = "daemon"
+requires_modules = ["capture"]
+
+[requires]
+privilege = "admin"
+
+[requires.hardware]
+
+[python]
+packages = []
+process = "daemon"
+
+[provides]
+tools = ["topology_scan", "topology_map"]
+ui = ["NetworkTopologyDiagram", "TrafficMap"]
+
+[provides.nav]
+sidebar_section = "Capture"
+sidebar_label = "Traffic Map"
+
+[safety]
+max_permission = "exec"
+audit_log = true

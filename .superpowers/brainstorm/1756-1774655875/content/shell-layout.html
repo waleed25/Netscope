@@ -1,0 +1,151 @@
+<h2>Shell Layout Preview</h2>
+<p class="subtitle">Near-black palette · Icon rail + legacy sidebar · Sleek & Pro direction<br>
+Click an option to confirm the layout approach before we generate Stitch designs.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Icon Rail + Right Panel (Recommended)</h3>
+      <p>Compact 48px icon rail left · main content center · 260px right panel fixed · header 36px</p>
+      <!-- Shell mockup A -->
+      <div style="margin-top:10px;border:1px solid #1f1f1f;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:10px;">
+        <!-- Header -->
+        <div style="background:#111;border-bottom:1px solid #1f1f1f;padding:0 10px;height:28px;display:flex;align-items:center;gap:8px;">
+          <span style="color:#3b82f6;font-weight:700;letter-spacing:1px;">NETSCOPE</span>
+          <span style="flex:1"></span>
+          <span style="background:#1f1f1f;color:#737373;padding:2px 6px;border-radius:3px;font-size:9px;">qwen3:4b</span>
+          <span style="color:#737373;font-size:9px;">1.2k tok</span>
+        </div>
+        <!-- Body -->
+        <div style="display:flex;height:120px;background:#0a0a0a;">
+          <!-- Icon rail -->
+          <div style="width:32px;background:#0a0a0a;border-right:1px solid #1f1f1f;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:6px;">
+            <div style="width:22px;height:22px;border-radius:4px;background:#111;border-left:2px solid #3b82f6;display:flex;align-items:center;justify-content:center;">
+              <div style="width:10px;height:8px;border:1px solid #3b82f6;border-radius:1px;"></div>
+            </div>
+            <div style="width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="width:10px;height:8px;border:1px solid #404040;border-radius:1px;"></div>
+            </div>
+            <div style="width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="width:8px;height:8px;border:1px solid #404040;border-radius:50%;"></div>
+            </div>
+            <div style="width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="width:10px;height:7px;border:1px solid #404040;border-radius:1px;"></div>
+            </div>
+          </div>
+          <!-- Main content -->
+          <div style="flex:1;padding:6px;border-right:1px solid #1f1f1f;">
+            <div style="background:#111;border-radius:3px;height:16px;margin-bottom:4px;display:flex;align-items:center;padding:0 6px;gap:4px;">
+              <span style="color:#3b82f6;font-size:9px;">●</span><span style="color:#737373;font-size:9px;">Filter</span>
+              <span style="flex:1;background:#0a0a0a;height:10px;border-radius:2px;border:1px solid #1f1f1f;"></span>
+            </div>
+            <div style="color:#404040;font-size:9px;padding:2px 0;">No.  Time     Source          Proto</div>
+            <div style="background:#111;color:#e5e5e5;font-size:9px;padding:2px 4px;border-left:1px solid #3b82f6;margin-bottom:1px;">001  0.000    192.168.1.1   <span style="color:#22c55e;">TCP</span></div>
+            <div style="color:#e5e5e5;font-size:9px;padding:2px 4px;margin-bottom:1px;">002  0.001    10.0.0.53     <span style="color:#a855f7;">DNS</span></div>
+            <div style="color:#e5e5e5;font-size:9px;padding:2px 4px;">003  0.002    172.16.0.1    <span style="color:#3b82f6;">TLS</span></div>
+          </div>
+          <!-- Right panel -->
+          <div style="width:80px;padding:6px;background:#0a0a0a;">
+            <div style="color:#737373;font-size:8px;letter-spacing:0.5px;margin-bottom:4px;">INSIGHTS</div>
+            <div style="background:#111;border-radius:3px;padding:4px;margin-bottom:3px;border-left:1px solid #3b82f6;">
+              <div style="color:#e5e5e5;font-size:8px;">DNS spike</div>
+              <div style="color:#737373;font-size:8px;">+340% avg</div>
+            </div>
+            <div style="background:#111;border-radius:3px;padding:4px;border-left:1px solid #f59e0b;">
+              <div style="color:#e5e5e5;font-size:8px;">Retrans</div>
+              <div style="color:#737373;font-size:8px;">12 TCP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Wider Icon Rail (64px)</h3>
+      <p>Slightly wider rail shows icon + short label · Less compact but more readable nav</p>
+      <div style="margin-top:10px;border:1px solid #1f1f1f;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:10px;">
+        <div style="background:#111;border-bottom:1px solid #1f1f1f;padding:0 10px;height:28px;display:flex;align-items:center;gap:8px;">
+          <span style="color:#3b82f6;font-weight:700;letter-spacing:1px;">NETSCOPE</span>
+          <span style="flex:1"></span>
+          <span style="background:#1f1f1f;color:#737373;padding:2px 6px;border-radius:3px;font-size:9px;">qwen3:4b</span>
+        </div>
+        <div style="display:flex;height:120px;background:#0a0a0a;">
+          <div style="width:52px;background:#0a0a0a;border-right:1px solid #1f1f1f;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:2px;">
+            <div style="width:42px;padding:4px 2px;border-radius:4px;background:#111;border-left:2px solid #3b82f6;text-align:center;">
+              <div style="width:12px;height:10px;border:1px solid #3b82f6;border-radius:1px;margin:0 auto 2px;"></div>
+              <div style="color:#3b82f6;font-size:7px;">CAPTURE</div>
+            </div>
+            <div style="width:42px;padding:4px 2px;border-radius:4px;text-align:center;">
+              <div style="width:12px;height:10px;border:1px solid #404040;border-radius:1px;margin:0 auto 2px;"></div>
+              <div style="color:#737373;font-size:7px;">TOOLS</div>
+            </div>
+            <div style="width:42px;padding:4px 2px;border-radius:4px;text-align:center;">
+              <div style="width:10px;height:10px;border:1px solid #404040;border-radius:50%;margin:0 auto 2px;"></div>
+              <div style="color:#737373;font-size:7px;">TOPO</div>
+            </div>
+            <div style="width:42px;padding:4px 2px;border-radius:4px;text-align:center;">
+              <div style="width:12px;height:9px;border:1px solid #404040;border-radius:1px;margin:0 auto 2px;"></div>
+              <div style="color:#737373;font-size:7px;">MODBUS</div>
+            </div>
+          </div>
+          <div style="flex:1;padding:6px;border-right:1px solid #1f1f1f;">
+            <div style="background:#111;border-radius:3px;height:16px;margin-bottom:4px;display:flex;align-items:center;padding:0 6px;gap:4px;">
+              <span style="color:#737373;font-size:9px;">Filter</span>
+              <span style="flex:1;background:#0a0a0a;height:10px;border-radius:2px;border:1px solid #1f1f1f;"></span>
+            </div>
+            <div style="color:#404040;font-size:9px;padding:2px 0;">No.  Time     Source          Proto</div>
+            <div style="background:#111;color:#e5e5e5;font-size:9px;padding:2px 4px;border-left:1px solid #3b82f6;margin-bottom:1px;">001  0.000    192.168.1.1   <span style="color:#22c55e;">TCP</span></div>
+            <div style="color:#e5e5e5;font-size:9px;padding:2px 4px;">002  0.001    10.0.0.53     <span style="color:#a855f7;">DNS</span></div>
+          </div>
+          <div style="width:80px;padding:6px;background:#0a0a0a;">
+            <div style="color:#737373;font-size:8px;letter-spacing:0.5px;margin-bottom:4px;">INSIGHTS</div>
+            <div style="background:#111;border-radius:3px;padding:4px;margin-bottom:3px;border-left:1px solid #3b82f6;">
+              <div style="color:#e5e5e5;font-size:8px;">DNS spike</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>No Right Panel by Default</h3>
+      <p>Icon rail only · Main content fills full width · Right panel slides in on demand (chat/insights button in header)</p>
+      <div style="margin-top:10px;border:1px solid #1f1f1f;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:10px;">
+        <div style="background:#111;border-bottom:1px solid #1f1f1f;padding:0 10px;height:28px;display:flex;align-items:center;gap:8px;">
+          <span style="color:#3b82f6;font-weight:700;letter-spacing:1px;">NETSCOPE</span>
+          <span style="flex:1"></span>
+          <span style="background:#1f1f1f;color:#737373;padding:2px 6px;border-radius:3px;font-size:9px;">qwen3:4b</span>
+          <span style="background:#1f2b4a;color:#3b82f6;padding:2px 6px;border-radius:3px;font-size:9px;border:1px solid #3b82f6;">Chat ▸</span>
+        </div>
+        <div style="display:flex;height:120px;background:#0a0a0a;">
+          <div style="width:32px;background:#0a0a0a;border-right:1px solid #1f1f1f;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:6px;">
+            <div style="width:22px;height:22px;border-radius:4px;background:#111;border-left:2px solid #3b82f6;display:flex;align-items:center;justify-content:center;">
+              <div style="width:10px;height:8px;border:1px solid #3b82f6;border-radius:1px;"></div>
+            </div>
+            <div style="width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="width:10px;height:8px;border:1px solid #404040;border-radius:1px;"></div>
+            </div>
+          </div>
+          <!-- Full-width main content -->
+          <div style="flex:1;padding:6px;">
+            <div style="background:#111;border-radius:3px;height:16px;margin-bottom:4px;display:flex;align-items:center;padding:0 6px;gap:4px;">
+              <span style="color:#737373;font-size:9px;">Filter</span>
+              <span style="flex:1;background:#0a0a0a;height:10px;border-radius:2px;border:1px solid #1f1f1f;"></span>
+            </div>
+            <div style="color:#404040;font-size:9px;padding:2px 0;">No.  Time     Source              Dest              Proto  Len   Info</div>
+            <div style="background:#111;color:#e5e5e5;font-size:9px;padding:2px 4px;border-left:1px solid #3b82f6;margin-bottom:1px;">001  0.000    192.168.1.100       8.8.8.8           <span style="color:#a855f7;">DNS</span>    64    Standard query</div>
+            <div style="color:#e5e5e5;font-size:9px;padding:2px 4px;margin-bottom:1px;">002  0.001    8.8.8.8             192.168.1.100     <span style="color:#a855f7;">DNS</span>    128   Standard response</div>
+            <div style="color:#e5e5e5;font-size:9px;padding:2px 4px;">003  0.002    192.168.1.100       104.26.10.54      <span style="color:#22c55e;">TCP</span>    66    SYN</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
