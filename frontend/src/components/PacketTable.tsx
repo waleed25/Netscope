@@ -20,10 +20,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useStore } from "../store/useStore";
 import { fetchPackets, fetchLocalIPs } from "../lib/api";
 import { compileFilter } from "../lib/displayFilter";
-import { ChevronDown, ChevronRight, X, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, X, ChevronUp, BarChart2 } from "lucide-react";
 import type { Packet } from "../store/useStore";
 import { PacketContextMenu } from "./PacketContextMenu";
 import type { ContextMenuState } from "./PacketContextMenu";
+import { StatisticsModal } from "./StatisticsModal";
+import type { StatView } from "./StatisticsModal";
 
 // ── Protocol layer labels (Wireshark naming) ──────────────────────────────────
 
@@ -428,6 +430,8 @@ export function PacketTable() {
   const [ctxMenu, setCtxMenu]       = useState<ContextMenuState | null>(null);
   const [markedIds, setMarkedIds]   = useState<Set<number>>(new Set());
   const [ignoredIds, setIgnoredIds] = useState<Set<number>>(new Set());
+  const [statsView, setStatsView]   = useState<StatView | null>(null);
+  const [statsMenuOpen, setStatsMenuOpen] = useState(false);
 
   const scrollRef     = useRef<HTMLDivElement>(null);
   const pollRef       = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -605,6 +609,50 @@ export function PacketTable() {
             {filterResult.error}
           </div>
         )}
+
+        {/* ── Statistics dropdown button ─────────────────────────────────── */}
+        <div className="relative shrink-0 border-l" style={{ borderColor: "#30363d" }}>
+          <button
+            onClick={() => setStatsMenuOpen(o => !o)}
+            className="flex items-center gap-1.5 px-3 h-full text-[11px] font-mono transition-colors hover:bg-[#1c2128]"
+            style={{ color: "#8b949e" }}
+            title="Statistics"
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            Statistics
+            <ChevronDown className="w-3 h-3 opacity-60" />
+          </button>
+
+          {statsMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <div className="fixed inset-0 z-[90]" onClick={() => setStatsMenuOpen(false)} />
+              {/* Dropdown */}
+              <div
+                className="absolute right-0 top-full z-[100] rounded shadow-2xl overflow-hidden"
+                style={{ minWidth: 220, background: "#1c2128", border: "1px solid #444c56", marginTop: 2 }}
+              >
+                {([
+                  ["summary",       "Capture File Properties"],
+                  ["hierarchy",     "Protocol Hierarchy"],
+                  ["conversations", "Conversations"],
+                  ["endpoints",     "Endpoints"],
+                  ["lengths",       "Packet Lengths"],
+                  ["iograph",       "I/O Graph"],
+                ] as [StatView, string][]).map(([id, label]) => (
+                  <button
+                    key={id}
+                    onClick={() => { setStatsView(id); setStatsMenuOpen(false); }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] font-mono transition-colors hover:bg-[#2d333b]"
+                    style={{ color: "#cdd9e5" }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ── Packet list ──────────────────────────────────────────────────────── */}
@@ -817,6 +865,15 @@ export function PacketTable() {
           onMarkToggle={toggleMark}
           onIgnoreToggle={toggleIgnore}
           onFollowStream={handleFollowStream}
+        />
+      )}
+
+      {/* ── Statistics modal ─────────────────────────────────────────────────── */}
+      {statsView && (
+        <StatisticsModal
+          packets={packets}
+          initialView={statsView}
+          onClose={() => setStatsView(null)}
         />
       )}
     </div>
