@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Capture settings
     auto_insight_interval: int = 50  # trigger insight every N packets
-    max_packets_in_memory: int = 5000
+    max_packets_in_memory: int = 0  # 0 = unlimited (no cap)
     capture_timeout: int = 0  # 0 = no timeout
 
     # Agent memory settings

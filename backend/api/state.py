@@ -16,8 +16,9 @@ from config import settings
 
 
 # ── In-memory stores ──────────────────────────────────────────────────────────
-# deque(maxlen=N) gives O(1) append + automatic trimming.
-_packets: deque[dict] = deque(maxlen=settings.max_packets_in_memory)
+# max_packets_in_memory=0 means unlimited (plain deque, no maxlen).
+_max = settings.max_packets_in_memory
+_packets: deque[dict] = deque(maxlen=_max if _max > 0 else None)
 _insights: deque[dict] = deque(maxlen=100)
 _chat_history: deque[dict] = deque(maxlen=200)
 _drain_task: Optional[asyncio.Task] = None
@@ -60,9 +61,6 @@ def clear_packets():
 
 def add_packets(pkts: list[dict]):
     _packets.extend(pkts)
-    limit = settings.max_packets_in_memory
-    while len(_packets) > limit:
-        _packets.popleft()
 
 
 def add_insight(text: str, source: str = "auto"):

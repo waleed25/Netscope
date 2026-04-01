@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useStore } from "../store/useStore";
 import { useShallow } from "zustand/react/shallow";
 import { startCapture, stopCapture, fetchInterfaces, captureStatus, fetchCurrentCaptureFile } from "../lib/api";
-import { Play, Square, RefreshCw, Filter, HardDrive } from "lucide-react";
+import { Play, Square, RefreshCw, Filter, HardDrive, Wifi } from "lucide-react";
 
 const PROTOCOLS = ["", "TCP", "UDP", "HTTP", "HTTPS", "TLS", "DNS", "ICMP", "ARP", "OTHER"];
 
@@ -321,17 +321,45 @@ export function FilterBar() {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-background">
-      {/* Interface selector */}
-      <div className="flex items-center gap-1.5">
-        <label className="text-muted text-xs shrink-0">Interface</label>
+    <div className="flex items-center gap-0 border-b" style={{ background: "#161b22", borderColor: "#30363d", minHeight: 36 }}>
+
+      {/* ── Capture start / stop (left, most prominent) ────────────────────── */}
+      <div className="flex items-center shrink-0 px-2 gap-1 border-r" style={{ borderColor: "#30363d" }}>
+        {!isCapturing ? (
+          <button
+            onClick={handleStart}
+            disabled={!activeInterface}
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-colors disabled:opacity-40"
+            style={{ background: "#238636", color: "#fff" }}
+            title="Start capturing packets"
+          >
+            <Play className="w-3.5 h-3.5" />
+            Start
+          </button>
+        ) : (
+          <button
+            onClick={handleStop}
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-colors"
+            style={{ background: "#da3633", color: "#fff" }}
+            title="Stop capture"
+          >
+            <Square className="w-3.5 h-3.5" />
+            Stop
+          </button>
+        )}
+      </div>
+
+      {/* ── Interface selector ─────────────────────────────────────────────── */}
+      <div className="flex items-center gap-1 px-2 shrink-0 border-r" style={{ borderColor: "#30363d" }}>
+        <Wifi className="w-3.5 h-3.5 shrink-0" style={{ color: "#8b949e" }} />
         <select
           value={activeInterface}
           onChange={(e) => setActiveInterface(e.target.value)}
           disabled={isCapturing}
-          className="bg-surface border border-border text-foreground text-xs rounded px-2 py-1 min-w-[180px] focus:outline-none focus:border-accent disabled:opacity-50"
+          className="text-xs rounded px-1.5 py-0.5 focus:outline-none disabled:opacity-50 min-w-[160px] max-w-[200px]"
+          style={{ background: "#0d1117", border: "1px solid #30363d", color: "#e6edf3" }}
         >
-          <option value="">-- select interface --</option>
+          <option value="">Select interface…</option>
           {interfaces.map((iface) => {
             const friendly = iface.name.match(/\(([^)]+)\)$/);
             return (
@@ -344,16 +372,17 @@ export function FilterBar() {
         <button
           onClick={() => fetchInterfaces().then(setInterfaces).catch(() => {})}
           disabled={isCapturing}
-          className="p-1 text-muted hover:text-foreground disabled:opacity-50"
+          className="p-1 disabled:opacity-40 hover:text-foreground transition-colors"
+          style={{ color: "#8b949e" }}
           title="Refresh interfaces"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-3 h-3" />
         </button>
       </div>
 
-      {/* BPF filter with autocomplete */}
-      <div className="flex items-center gap-1.5 flex-1 min-w-[160px]">
-        <Filter className="w-3.5 h-3.5 text-muted shrink-0" />
+      {/* ── BPF capture filter ────────────────────────────────────────────── */}
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2 border-r" style={{ borderColor: "#30363d" }}>
+        <Filter className="w-3.5 h-3.5 shrink-0" style={{ color: "#8b949e" }} />
         <BpfFilterInput
           value={bpfFilter}
           onChange={setBpfFilter}
@@ -361,13 +390,14 @@ export function FilterBar() {
         />
       </div>
 
-      {/* Protocol filter */}
-      <div className="flex items-center gap-1.5">
-        <label className="text-muted text-xs shrink-0">Proto</label>
+      {/* ── Protocol quick-filter ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-1.5 px-2 shrink-0 border-r" style={{ borderColor: "#30363d" }}>
+        <label className="text-[11px] shrink-0" style={{ color: "#8b949e" }}>Proto</label>
         <select
           value={selectedProtocol}
           onChange={(e) => setSelectedProtocol(e.target.value)}
-          className="bg-surface border border-border text-foreground text-xs rounded px-2 py-1 focus:outline-none focus:border-accent"
+          className="text-xs rounded px-1.5 py-0.5 focus:outline-none"
+          style={{ background: "#0d1117", border: "1px solid #30363d", color: "#e6edf3" }}
         >
           {PROTOCOLS.map((p) => (
             <option key={p} value={p}>{p || "All"}</option>
@@ -375,37 +405,24 @@ export function FilterBar() {
         </select>
       </div>
 
-      {/* Packet count badge */}
-      <div className="flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded text-xs font-mono">
-        <span className="text-muted">pkts</span>
-        <span className={`font-semibold ${isCapturing ? "text-success" : "text-foreground"}`}>
-          {backendCount.toLocaleString()}
-        </span>
-        {isCapturing && (
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-success animate-pulse ml-1" />
-        )}
+      {/* ── Live packet counter ───────────────────────────────────────────── */}
+      <div className="flex items-center gap-1.5 px-3 shrink-0 font-mono text-xs"
+           style={{ color: isCapturing ? "#3fb950" : "#8b949e" }}>
+        {isCapturing && <span className="w-1.5 h-1.5 rounded-full bg-[#3fb950] animate-pulse inline-block shrink-0" />}
+        {backendCount.toLocaleString()} pkts
       </div>
 
-      {/* Start / Stop */}
-      {!isCapturing ? (
-        <button onClick={handleStart}
-          className="flex items-center gap-1.5 px-3 py-1 bg-success hover:bg-success/80 text-white text-xs rounded font-medium transition-colors">
-          <Play className="w-3 h-3" /> Start Capture
-        </button>
-      ) : (
-        <button onClick={handleStop}
-          className="flex items-center gap-1.5 px-3 py-1 bg-danger hover:bg-danger/80 text-white text-xs rounded font-medium transition-colors">
-          <Square className="w-3 h-3" /> Stop
-        </button>
+      {/* ── Saved file badge ─────────────────────────────────────────────── */}
+      {captureFileName && !isCapturing && (
+        <div className="flex items-center gap-1 px-2 ml-auto text-[11px] font-mono truncate max-w-[180px]"
+             style={{ color: "#8b949e" }} title={captureFileName}>
+          <HardDrive className="w-3 h-3 shrink-0" />
+          {captureFileName}
+        </div>
       )}
 
-      {error && <span className="text-danger text-xs">{error}</span>}
-
-      {captureFileName && !isCapturing && (
-        <div className="flex items-center gap-1 text-xs text-muted ml-auto" title={captureFileName}>
-          <HardDrive className="w-3 h-3 shrink-0" />
-          <span className="max-w-[200px] truncate font-mono">{captureFileName}</span>
-        </div>
+      {error && (
+        <div className="px-2 text-xs shrink-0" style={{ color: "#f85149" }}>{error}</div>
       )}
     </div>
   );
