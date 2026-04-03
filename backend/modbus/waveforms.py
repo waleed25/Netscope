@@ -21,7 +21,12 @@ _SAFE_GLOBALS: dict = {
     "__builtins__": {},
 }
 
-_BLOCKED_CALLS = {"__import__", "open", "exec", "eval", "compile", "getattr", "setattr", "delattr"}
+_BLOCKED_CALLS = {
+    "__import__", "open", "exec", "eval", "compile", 
+    "getattr", "setattr", "delattr", "type", "isinstance",
+    "vars", "dir", "globals", "locals", "hasattr",
+    "id", "callable", "repr", "chr", "ord", "hex", "oct", "bin",
+}
 _BLOCKED_ATTR_OBJECTS = {"os", "sys", "subprocess", "builtins"}
 
 

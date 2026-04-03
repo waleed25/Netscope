@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
+import { Skeleton } from './Skeleton'
 
 interface Report {
   id: string
@@ -102,7 +103,17 @@ export default function ReportViewer() {
       ) : (
         <div className="flex-1 overflow-auto">
           {loading && (
-            <div className="p-4 text-sm text-muted">Loading reports&hellip;</div>
+            <div className="p-4 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center w-full border-b border-border p-4">
+                  <div className="flex-1 space-y-2">
+                     <Skeleton className="h-4 w-1/3" />
+                     <Skeleton className="h-3 w-1/4" />
+                  </div>
+                  <Skeleton className="h-4 w-12" />
+                </div>
+              ))}
+            </div>
           )}
           {!loading && reports.length === 0 && (
             <div className="p-4 text-sm text-muted">

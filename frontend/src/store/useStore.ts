@@ -3,6 +3,7 @@ import { create } from "zustand";
 export interface Packet {
   id: number;
   timestamp: number;
+  time?: string;        // display-format time string (e.g. "12:34:56.789")
   layers: string[];
   src_ip: string;
   dst_ip: string;

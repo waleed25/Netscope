@@ -48,10 +48,12 @@ import io
 from dataclasses import asdict
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, UploadFile, File, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import StreamingResponse, PlainTextResponse
 from pydantic import BaseModel, Field, field_validator
 
+from config import settings
+from api.websocket import _check_ws_origin
 from modbus.register_maps import DEVICE_TYPES, lookup, registers_summary
 from modbus.device_loader import load_file, devices_to_dict
 from modbus.simulator import simulator_manager
@@ -601,6 +603,9 @@ class TrafficLogConfig(BaseModel):
 @router.websocket("/client/{session_id}/traffic/ws")
 async def modbus_traffic_ws(ws: WebSocket, session_id: str):
     """Stream raw captured frames to a WebSocket subscriber."""
+    if not _check_ws_origin(ws):
+        await ws.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     session = client_manager.get_session(session_id)
     if session is None:
         await ws.close(code=4004)
@@ -934,6 +939,9 @@ async def modbus_client_ws(websocket: WebSocket, session_id: str):
       {"type":"error",        "message":"..."}
       {"type":"status",       "status":"polling", "error":""}
     """
+    if not _check_ws_origin(websocket):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     session = client_manager.get_session(session_id)
     if not session:
         await websocket.close(code=4404)

@@ -37,6 +37,7 @@ import {
   ArrowUp,
   Hash,
 } from "lucide-react";
+import { Skeleton } from "./Skeleton";
 import { fetchSystemStatus, SystemStatus, ComponentStatus } from "../lib/api";
 import { useStore } from "../store/useStore";
 import { useShallow } from "zustand/react/shallow";
@@ -381,12 +382,12 @@ export function StatusPanel() {
         <div className="rounded-lg border border-border-subtle bg-surface overflow-hidden">
           {Array.from({ length: 9 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-border-subtle last:border-0">
-              <div className="w-8 h-8 rounded-md bg-border-subtle animate-pulse shrink-0" />
+              <Skeleton className="w-8 h-8 shrink-0" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3 w-32 bg-border-subtle rounded animate-pulse" />
-                <div className="h-2.5 w-48 bg-border-subtle rounded animate-pulse" />
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-2.5 w-48" />
               </div>
-              <div className="h-2.5 w-12 bg-border-subtle rounded animate-pulse" />
+              <Skeleton className="h-2.5 w-12" />
             </div>
           ))}
         </div>

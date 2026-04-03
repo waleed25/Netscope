@@ -231,7 +231,18 @@ function QuickTab() {
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-2 text-xs">
         {result && <MarkdownContent>{result}</MarkdownContent>}
-        {loading && !result && <Loader2 className="w-4 h-4 animate-spin text-muted mt-4 mx-auto" />}
+        {loading && !result && (
+          <div className="space-y-3 animate-pulse mt-2">
+            <div className="flex items-center gap-2 text-muted mb-4">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Analyzing traffic...</span>
+            </div>
+            <div className="h-4 w-3/4 bg-border/50 rounded" />
+            <div className="h-4 w-full bg-border/30 rounded" />
+            <div className="h-4 w-5/6 bg-border/30 rounded" />
+            <div className="h-4 w-1/2 bg-border/30 rounded" />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -286,8 +297,28 @@ function DeepTab() {
 
   if (loading && !analysisReport) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-muted text-sm">
-        <Loader2 className="w-4 h-4 animate-spin" /> Running deep analysis…
+      <div className="flex flex-col h-full overflow-hidden p-3 space-y-3">
+        <div className="animate-pulse flex gap-2 items-center text-muted text-xs mb-2">
+          <Loader2 className="w-3 h-3 animate-spin" /> Running deep analysis…
+        </div>
+        <div className="border border-border rounded p-2 space-y-2">
+          <div className="h-4 w-24 bg-border/50 rounded animate-pulse" />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+            <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+            <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+            <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="border border-border rounded p-2 space-y-2">
+          <div className="h-4 w-20 bg-border/50 rounded animate-pulse" />
+          <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+        </div>
+        <div className="border border-border rounded p-2 space-y-2">
+          <div className="h-4 w-28 bg-border/50 rounded animate-pulse" />
+          <div className="h-3 w-full bg-border/30 rounded animate-pulse" />
+          <div className="h-3 w-3/4 bg-border/30 rounded animate-pulse" />
+        </div>
       </div>
     );
   }

@@ -26,6 +26,8 @@ import {
   X,
 } from "lucide-react";
 
+import { PanelSkeleton } from "./Skeleton";
+
 // Optional module panels — lazy-loaded so they don't bloat the initial bundle
 const TrafficMap    = lazy(() => import("./TrafficMap").then(m => ({ default: m.TrafficMap })));
 const ModbusPanel   = lazy(() => import("./ModbusPanel").then(m => ({ default: m.ModbusPanel })));
@@ -35,7 +37,7 @@ const SchedulerPanel = lazy(() => import("./SchedulerPanel").then(m => ({ defaul
 const WizardPanel    = lazy(() => import("./WizardPanel"));
 const ReportViewer   = lazy(() => import("./ReportViewer"));
 
-const LazyFallback = () => <div className="p-4 text-muted text-xs">Loading...</div>;
+const LazyFallback = () => <PanelSkeleton />;
 
 interface DashboardProps {
   onUpdateFailed?: (reason: string) => void;

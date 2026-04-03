@@ -2,6 +2,7 @@
   "name": "netscope",
   "version": "1.1.0",
   "description": "AI-powered SCADA & ICS network analysis desktop app",
+  "author": "Netscope Team",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -93,9 +94,11 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64"]
         }
       ],
       "icon": "assets/icon.ico",

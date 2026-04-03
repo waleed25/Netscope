@@ -66,6 +66,25 @@ _PRIVATE_NETS = [
 ]
 
 
+class _SafeTransport(httpx.AsyncHTTPTransport):
+    """Re-validates resolved IP at connect time to prevent DNS rebinding."""
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        host = request.url.host
+        try:
+            resolved = socket.getaddrinfo(host, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+            for _fam, _type, _proto, _canon, sockaddr in resolved:
+                ip_str = sockaddr[0]
+                try:
+                    addr = ipaddress.ip_address(ip_str)
+                    if addr.is_private or addr.is_loopback or addr.is_link_local:
+                        raise ValueError(f"DNS rebinding detected: {host} -> {ip_str}")
+                except ValueError:
+                    raise
+        except socket.gaierror:
+            pass
+        return await super().handle_async_request(request)
+
+
 def _is_safe_url(url: str) -> tuple[bool, str]:
     """
     Return (True, "") if the URL is safe to fetch, or (False, reason) if not.
@@ -187,6 +206,7 @@ async def crawl_wireshark_wiki(
 
     cancelled = False
     async with httpx.AsyncClient(
+        transport=_SafeTransport(),
         headers=headers,
         follow_redirects=True,
         timeout=REQUEST_TIMEOUT,
@@ -282,6 +302,7 @@ async def crawl_panos_techdocs(
 
     cancelled = False
     async with httpx.AsyncClient(
+        transport=_SafeTransport(),
         headers=headers,
         follow_redirects=True,
         timeout=REQUEST_TIMEOUT,

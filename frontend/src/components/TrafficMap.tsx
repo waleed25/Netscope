@@ -21,6 +21,7 @@ import { toPng } from "html-to-image";
 import { fetchPackets } from "../lib/api";
 import type { Packet } from "../store/useStore";
 import { RefreshCw, Maximize2, Image, FileText, Workflow, Network, GitBranch } from "lucide-react";
+import { Skeleton } from "./Skeleton";
 import { NetworkTopologyDiagram } from "./NetworkTopologyDiagram";
 
 // ─── Custom host node ─────────────────────────────────────────────────────────
@@ -656,6 +657,19 @@ function TrafficMapInner() {
             <Maximize2 className="w-10 h-10 mb-3 opacity-20" />
             <p className="text-sm">No packet data yet</p>
             <p className="text-xs mt-1 opacity-70">Start a capture or import a PCAP, then refresh</p>
+          </div>
+        )}
+
+        {/* Loading overlay */}
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 z-10 backdrop-blur-[2px]">
+            <div className="flex items-center gap-4 text-muted">
+              <RefreshCw className="w-6 h-6 animate-spin" />
+              <div className="space-y-2">
+                 <Skeleton className="h-4 w-32" />
+                 <Skeleton className="h-3 w-48" />
+              </div>
+            </div>
           </div>
         )}
       </div>

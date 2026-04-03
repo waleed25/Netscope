@@ -11,6 +11,7 @@ import {
   fetchRAGTasks, queryRAG, cancelIngestTask,
   type RAGStatus, type RAGSource, type RAGTask,
 } from "../lib/api";
+import { Skeleton } from "./Skeleton";
 
 // ── Status bar ────────────────────────────────────────────────────────────────
 

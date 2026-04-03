@@ -9,13 +9,21 @@ import asyncio
 import json
 from typing import Set
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from agent import analyzer
+from backend.config import settings
 
 router = APIRouter()
 
 _packet_clients: Set[WebSocket] = set()
 _insight_clients: Set[WebSocket] = set()
+
+
+def _check_ws_origin(websocket: WebSocket) -> bool:
+    origin = websocket.headers.get("origin", "")
+    if not origin:
+        return True  # same-origin (no Origin header = not cross-origin browser request)
+    return any(origin.rstrip("/") == allowed.rstrip("/") for allowed in settings.cors_origins)
 
 
 async def _safe_send(ws: WebSocket, data: str):
@@ -59,6 +67,9 @@ async def websocket_packets(websocket: WebSocket):
     WebSocket kept alive so the server can push packets to the browser.
     The drain loop in routes.py calls broadcast_packet() for each packet.
     """
+    if not _check_ws_origin(websocket):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     await websocket.accept()
     _packet_clients.add(websocket)
     try:
@@ -85,6 +96,9 @@ async def websocket_packets(websocket: WebSocket):
 
 @router.websocket("/ws/insights")
 async def websocket_insights(websocket: WebSocket):
+    if not _check_ws_origin(websocket):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     await websocket.accept()
     _insight_clients.add(websocket)
     try:

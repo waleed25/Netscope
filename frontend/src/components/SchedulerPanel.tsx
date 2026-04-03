@@ -14,6 +14,7 @@ import {
   type JobRunRecord,
   type CreateJobPayload,
 } from "../lib/api";
+import { Skeleton } from "./Skeleton";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -144,9 +145,17 @@ function HistoryPanel({ job, onClose }: HistoryPanelProps) {
       {/* Records */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-8 text-muted text-sm gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Loading history…
+          <div className="p-4 space-y-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
           </div>
         ) : records.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted text-sm">
@@ -594,9 +603,23 @@ export function SchedulerPanel() {
         {/* Job list */}
         <div className="flex-1 overflow-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-muted text-sm gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Loading scheduled jobs…
+            <div className="p-4 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-border rounded-lg bg-surface">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-16" />
+                    <Skeleton className="h-8 w-16" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : jobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted">
