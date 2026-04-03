@@ -82,6 +82,11 @@
       {
         "from": "vendor",
         "to": "vendor"
+      },
+      {
+        "from": "vendor/.pyembed-build",
+        "to": "backend/.pyembed",
+        "filter": ["**/*"]
       }
     ],
     "win": {

@@ -465,7 +465,8 @@ _MAX_PCAP_BYTES = 200 * 1024 * 1024  # 200 MB hard limit
 
 @router.post("/pcap/upload")
 async def upload_pcap(file: UploadFile = File(...)):
-    filename = file.filename or ""
+    # Strip any directory components to prevent path traversal
+    filename = pathlib.Path(file.filename or "untitled.pcap").name
     if not filename.endswith((".pcap", ".pcapng", ".cap")):
         raise HTTPException(status_code=400, detail="File must be .pcap, .pcapng, or .cap")
 

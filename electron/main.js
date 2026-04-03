@@ -296,7 +296,7 @@ async function startGateway() {
     gatewayProcess = spawn(
       python,
       ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', String(backendPort)],
-      { cwd: GATEWAY_DIR, env, windowsHide: true, shell: process.platform === 'win32' }
+      { cwd: GATEWAY_DIR, env, windowsHide: true }
     );
     fs.appendFileSync(debugLog, `[main] Gateway spawned (PID: ${gatewayProcess.pid})\n`);
     if (gatewayProcess) {
@@ -339,7 +339,7 @@ async function startDaemon() {
     daemonProcess = spawn(
       python,
       [daemonMain],
-      { cwd: DAEMON_DIR, env, windowsHide: true, shell: process.platform === 'win32' }
+      { cwd: DAEMON_DIR, env, windowsHide: true }
     );
     daemonProcess.stdout.on('data', d => process.stdout.write(`[daemon] ${d}`));
     daemonProcess.stderr.on('data', d => process.stderr.write(`[daemon] ${d}`));
@@ -361,7 +361,7 @@ async function startEngine() {
     engineProcess = spawn(
       python,
       [engineMain],
-      { cwd: ENGINE_DIR, env, windowsHide: true, shell: process.platform === 'win32' }
+      { cwd: ENGINE_DIR, env, windowsHide: true }
     );
     if (engineProcess) {
       engineProcess.stdout?.on('data', d => process.stdout.write(`[engine] ${d}`));
