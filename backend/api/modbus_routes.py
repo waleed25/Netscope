@@ -93,7 +93,7 @@ def _validate_log_path(raw: str) -> Path:
 class CreateSimRequest(BaseModel):
     device_type:     str   = ""
     device_name:     str   = ""
-    host:            str   = "0.0.0.0"
+    host:            str   = "127.0.0.1"   # loopback-only by default — set "0.0.0.0" explicitly for LAN access
     port:            int   = 5020
     unit_id:         int   = 1
     label:           str   = ""
@@ -106,8 +106,8 @@ class CreateSimFromDevicesRequest(BaseModel):
 
 
 class WriteRegisterRequest(BaseModel):
-    address: int
-    value:   int
+    address: int = Field(..., ge=0, le=65535)
+    value:   int = Field(..., ge=0, le=65535)
 
 
 class CreateClientRequest(BaseModel):
@@ -396,6 +396,11 @@ async def list_client_sessions():
 async def create_client_session(req: CreateClientRequest):
     _key, registers = lookup(req.device_type, req.device_name)
     # Empty register map is fine — session still connects; on-demand reads work via generic endpoint
+    # Validate log path before passing to session (prevents path traversal)
+    validated_log_path: str | None = None
+    if req.traffic_log_path:
+        validated_log_path = str(_validate_log_path(req.traffic_log_path))
+
     session = await client_manager.create_session(
         registers,
         label=req.label,
@@ -419,7 +424,7 @@ async def create_client_session(req: CreateClientRequest):
         enabled_fcs=req.enabled_fcs,
         max_connections=req.max_connections,
         interceptor_mode=req.interceptor_mode,
-        traffic_log_path=req.traffic_log_path,
+        traffic_log_path=validated_log_path,
     )
     return session.to_dict()
 
@@ -864,22 +869,33 @@ async def write_registers(source: str, session_id: str, body: WriteRequest):
                 status_code=404, detail=f"Client session '{session_id}' not found."
             )
         fc = body.fc
+        # Convert 5-digit Modbus display addresses to 0-based wire addresses,
+        # mirroring the same conversion done by read_range / GET registers.
+        def _wire(addr: int, is_coil: bool = False) -> int:
+            if is_coil:
+                return max(0, addr - 1) if addr >= 1 else addr
+            # Holding / input register (FC 6, 16, 22, 23)
+            if addr >= 40001:
+                return addr - 40001
+            if addr >= 30001:
+                return addr - 30001
+            return max(0, addr)
         try:
             if fc == 5:
                 val = bool(body.values[0]) if body.values else False
-                result = await session.write_coil(body.addr, val)
+                result = await session.write_coil(_wire(body.addr, is_coil=True), val)
             elif fc == 6:
                 val = body.values[0] if body.values else 0
-                result = await session.write_register(body.addr, val)
+                result = await session.write_register(_wire(body.addr), val)
             elif fc == 15:
-                result = await session.write_coils(body.addr, [bool(v) for v in body.values])
+                result = await session.write_coils(_wire(body.addr, is_coil=True), [bool(v) for v in body.values])
             elif fc == 16:
-                result = await session.write_registers(body.addr, body.values)
+                result = await session.write_registers(_wire(body.addr), body.values)
             elif fc == 22:
-                result = await session.mask_write_register(body.addr, body.and_mask, body.or_mask)
+                result = await session.mask_write_register(_wire(body.addr), body.and_mask, body.or_mask)
             elif fc == 23:
                 result = await session.read_write_registers(
-                    body.read_addr, body.read_count, body.addr, body.values
+                    _wire(body.read_addr), body.read_count, _wire(body.addr), body.values
                 )
             else:
                 raise HTTPException(
@@ -1050,15 +1066,25 @@ async def modbus_client_ws(websocket: WebSocket, session_id: str):
                 fc     = int(msg.get("fc", 6))
                 addr   = int(msg.get("addr", 0))
                 values = [int(v) for v in msg.get("values", [])]
+                # Convert 5-digit display address → 0-based wire address
+                is_coil_fc = fc in (5, 15)
+                if is_coil_fc:
+                    wire_addr = max(0, addr - 1) if addr >= 1 else addr
+                elif addr >= 40001:
+                    wire_addr = addr - 40001
+                elif addr >= 30001:
+                    wire_addr = addr - 30001
+                else:
+                    wire_addr = max(0, addr)
                 try:
                     if fc == 6:
-                        result = await session.write_register(addr, values[0] if values else 0)
+                        result = await session.write_register(wire_addr, values[0] if values else 0)
                     elif fc == 5:
-                        result = await session.write_coil(addr, bool(values[0]) if values else False)
+                        result = await session.write_coil(wire_addr, bool(values[0]) if values else False)
                     elif fc == 16:
-                        result = await session.write_registers(addr, values)
+                        result = await session.write_registers(wire_addr, values)
                     elif fc == 15:
-                        result = await session.write_coils(addr, [bool(v) for v in values])
+                        result = await session.write_coils(wire_addr, [bool(v) for v in values])
                     else:
                         result = {"ok": False, "error": f"Unsupported write FC: {fc}"}
                 except Exception as exc:

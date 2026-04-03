@@ -51,7 +51,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-        "file://",
+        # "file://" is intentionally omitted: browsers send Origin: null for file://
+        # pages, not "file://", so this entry has no effect and signals a
+        # misunderstanding of the CORS model.  The Electron renderer uses
+        # http://127.0.0.1:{port} which is already covered above.
     ]
 
     class Config:

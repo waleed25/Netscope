@@ -17,10 +17,8 @@ function resolveBaseURL(): string {
     typeof window !== "undefined" &&
     window.location.protocol === "file:"
   ) {
-    const port =
-      (window as unknown as { __BACKEND_PORT__?: number }).__BACKEND_PORT__ ??
-      ((window as unknown as { electronBridge?: { getBackendPort: () => number } })
-        .electronBridge?.getBackendPort() ?? 8000);
+    const bridge = (window as unknown as { electronBridge?: { getBackendPort: () => number } }).electronBridge;
+    const port = bridge?.getBackendPort() ?? 8000;
     return `http://127.0.0.1:${port}/api`;
   }
   // Normal browser / dev server with Vite proxy

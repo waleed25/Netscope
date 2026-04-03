@@ -21,7 +21,7 @@ const path   = require('path');
 const fs     = require('fs');
 const os     = require('os');
 const http   = require('http');
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, spawnSync } = require('child_process');
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
@@ -172,7 +172,7 @@ function _killProcess(proc, label) {
   if (!proc) return;
   try {
     if (process.platform === 'win32') {
-      execSync(`taskkill /PID ${proc.pid} /T /F`, { stdio: 'ignore' });
+      spawnSync('taskkill', ['/PID', String(proc.pid), '/T', '/F'], { stdio: 'ignore' });
     } else {
       process.kill(-proc.pid, 'SIGTERM');
     }
@@ -442,7 +442,7 @@ function createMainWindow() {
       preload:          path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration:  false,
-      webSecurity:      IS_PACKAGED,
+      webSecurity:      true,   // always on — dev cross-origin solved via preload IPC
     },
     autoHideMenuBar: true,
   });
@@ -452,7 +452,9 @@ function createMainWindow() {
     mainWindow.loadFile(indexHtml);
   } else {
     mainWindow.loadURL('http://localhost:4173');
-    mainWindow.webContents.openDevTools();
+    if (process.env.DEVTOOLS === '1') {
+      mainWindow.webContents.openDevTools();
+    }
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -474,7 +476,7 @@ function createMainWindow() {
           `default-src 'self'; ` +
           `script-src 'self'; ` +
           `style-src 'self' 'unsafe-inline'; ` +
-          `connect-src http://127.0.0.1 ws://127.0.0.1 https://api.github.com; ` +
+          `connect-src http://127.0.0.1:${backendPort} ws://127.0.0.1:${backendPort} https://api.github.com; ` +
           `img-src 'self' data:; ` +
           `font-src 'self' data:;`
         ],
@@ -500,6 +502,7 @@ function createWizardWindow() {
       preload:          path.join(__dirname, 'wizard', 'wizard-preload.js'),
       contextIsolation: true,
       nodeIntegration:  false,
+      webSecurity:      true,
     },
   });
 

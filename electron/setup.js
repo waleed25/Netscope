@@ -27,7 +27,7 @@ const AdmZip  = require('adm-zip');   // bundled via npm
 
 const IS_PACKAGED = require('electron').app.isPackaged;
 const RESOURCES   = IS_PACKAGED
-  ? require('electron').app.getPath('exe').replace(/[^/\\]+$/, '') + 'resources'
+  ? process.resourcesPath
   : path.join(__dirname, '..');
 
 const VENDOR_DIR   = path.join(RESOURCES, 'vendor');

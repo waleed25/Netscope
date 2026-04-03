@@ -102,9 +102,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Browsers send Origin: null for file:// pages (Electron renderer).
-# We include "null" as a string in the origins list to allow that.
-_cors_origins = list(settings.cors_origins) + ["null"]
+# Electron renderer communicates via http://127.0.0.1:{port} — no null-origin needed.
+# "null" origin (sandboxed iframes / file:// pages) is intentionally excluded: it
+# would allow any website's sandboxed iframe to make credentialed requests here.
+_cors_origins = list(settings.cors_origins)
 
 app.add_middleware(
     CORSMiddleware,

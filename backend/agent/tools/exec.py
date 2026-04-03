@@ -21,6 +21,10 @@ from datetime import datetime, timezone
 from agent.tools.registry import register, ToolDef
 from utils.proc import SUBPROCESS_KWARGS
 
+# ── Master kill-switch — disabled by default (CRITICAL security gate) ────────
+# Set to True only via a trusted Settings IPC call; never auto-enable.
+_EXEC_ENABLED: bool = False
+
 # ── Safety: never run these regardless of mode ───────────────────────────────
 BLOCKED_PATTERNS: frozenset[str] = frozenset({
     "rm -rf /", "format c:", "del /s /q c:", "rd /s /q c:",
@@ -115,6 +119,9 @@ async def _run_elevated_safe(command: str, timeout: int) -> tuple[int, str]:
 
 
 async def run_exec(args: str = "") -> str:
+    if not _EXEC_ENABLED:
+        return "[exec] Tool is disabled. Enable it via the Settings panel."
+
     from config import settings
 
     command = args.strip()

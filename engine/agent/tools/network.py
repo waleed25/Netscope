@@ -11,6 +11,29 @@ import subprocess
 from agent.tools.registry import register, ToolDef, MAX_OUTPUT
 from utils import proc
 
+# ── Target validation ────────────────────────────────────────────────────────
+
+_TARGET_RE = re.compile(
+    r"^(?:"
+    r"(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}"  # FQDN
+    r"|(?:\d{1,3}\.){3}\d{1,3}"                                              # IPv4
+    r"|[0-9a-fA-F:]{2,39}"                                                   # IPv6 (simplified)
+    r")$"
+)
+
+
+def _validate_host(raw: str, default: str = "8.8.8.8") -> tuple[str, str | None]:
+    """Return (host, error_msg). error_msg is None when host is valid."""
+    t = raw.strip()
+    if not t:
+        return default, None
+    if len(t) > 255:
+        return "", f"[tool error] Target too long."
+    if not _TARGET_RE.match(t):
+        return "", f"[tool error] Invalid target '{t}': must be a hostname or IP address."
+    return t, None
+
+
 # ── Executable paths ─────────────────────────────────────────────────────────
 
 _EXECUTABLES = {
@@ -57,19 +80,26 @@ async def _run_sync(fn, *args):
 # ── Tool implementations ────────────────────────────────────────────────────
 
 async def run_ping(args: str) -> str:
-    host = args.strip() or "8.8.8.8"
+    host, err = _validate_host(args.strip(), default="8.8.8.8")
+    if err:
+        return err
     return await _run_sync(_run_subprocess, [_EXECUTABLES["ping"], "-n", "4", host])
 
 
 async def run_tracert(args: str) -> str:
-    host = args.strip() or "8.8.8.8"
+    host, err = _validate_host(args.strip(), default="8.8.8.8")
+    if err:
+        return err
     return await _run_sync(_run_subprocess, [_EXECUTABLES["tracert"], "-d", host])
 
 
 async def run_arp(args: str) -> str:
     argv = [_EXECUTABLES["arp"], "-a"]
     if args.strip():
-        argv.append(args.strip())
+        host, err = _validate_host(args.strip())
+        if err:
+            return err
+        argv.append(host)
     return await _run_sync(_run_subprocess, argv)
 
 

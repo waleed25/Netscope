@@ -22,6 +22,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks
 from pydantic import BaseModel
+from rag.crawler import _is_safe_url
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
@@ -219,6 +220,9 @@ async def ingest_url(req: IngestUrlRequest, background_tasks: BackgroundTasks):
     source_name = req.source_name.strip() or url.split("/")[-1] or "url-ingest"
     if not url:
         raise HTTPException(status_code=400, detail="'url' is required.")
+    safe, reason = _is_safe_url(url)
+    if not safe:
+        raise HTTPException(status_code=400, detail=f"URL not allowed: {reason}")
 
     task_id   = _new_task(f"Ingest URL: {url[:60]}")
     cancel_ev = _cancel_event(task_id)

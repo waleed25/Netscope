@@ -59,6 +59,9 @@ async def _run_elevated_windows(command: str, timeout: int) -> tuple[int, str, s
     4. Poll for the output file to appear (up to *timeout* seconds).
     5. Read and return the captured output.
     """
+    if len(command) > 1024:
+        raise ValueError("Command too long")
+
     import ctypes
 
     # Temp directory for I/O files

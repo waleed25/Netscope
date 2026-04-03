@@ -5,7 +5,7 @@ Tokens are stored locally and NEVER returned by the API (masked as "***").
 from __future__ import annotations
 import json
 import os
-import random
+import secrets
 import time
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
@@ -85,7 +85,7 @@ class ConfigStore:
         cfg = self._configs.get(channel_name)
         if cfg is None:
             return ""
-        code = str(random.randint(100000, 999999))
+        code = str(secrets.randbelow(900000) + 100000)
         cfg.pending_pairings[code] = {
             "user_id": user_id,
             "username": username,

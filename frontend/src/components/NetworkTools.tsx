@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Brain, Play, X, Copy, Check, Wifi, Search, Download, Crosshair, ChevronDown, Loader2, Monitor } from "lucide-react";
+import { Brain, Play, X, Copy, Check, Wifi, Search, Download, Crosshair, ChevronDown, Loader2, Monitor, Clock, Radio } from "lucide-react";
 import axios from "axios";
 import { BASE } from "../lib/api";
 
@@ -700,9 +700,506 @@ function TerminalTools() {
   );
 }
 
+// ── NTP Tester ────────────────────────────────────────────────────────────────
+
+interface NTPSample {
+  sample: number;
+  offset_ms: number;
+  delay_ms: number;
+  rx_time: number;
+  stratum: number;
+  ref_id: string;
+  li: number;
+  li_text: string;
+  version: number;
+  root_delay_ms: number;
+  root_dispersion_ms: number;
+  poll_interval_s: number;
+  precision_exp: number;
+}
+
+interface NTPSummary {
+  server: string;
+  samples_ok: number;
+  samples_err: number;
+  stratum: number;
+  ref_id: string;
+  li: number;
+  li_text: string;
+  version: number;
+  root_delay_ms: number;
+  root_dispersion_ms: number;
+  offset_mean_ms: number;
+  offset_min_ms: number;
+  offset_max_ms: number;
+  offset_jitter_ms: number;
+  delay_mean_ms: number;
+  delay_min_ms: number;
+  delay_max_ms: number;
+}
+
+function offsetColor(ms: number): string {
+  const abs = Math.abs(ms);
+  if (abs < 10)  return "text-success";
+  if (abs < 100) return "text-warning";
+  return "text-danger";
+}
+
+function NTPTool() {
+  const [server,  setServer]  = useState("pool.ntp.org");
+  const [samples, setSamples] = useState("4");
+  const [timeout, setTimeout_] = useState("5");
+  const [running, setRunning] = useState(false);
+  const [summary, setSummary] = useState<NTPSummary | null>(null);
+  const [rows,    setRows]    = useState<NTPSample[]>([]);
+  const [errors,  setErrors]  = useState<{ sample: number; error: string }[]>([]);
+  const [error,   setError]   = useState("");
+  const [analysis, setAnalysis]   = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const run = async () => {
+    if (running) return;
+    setRunning(true); setSummary(null); setRows([]); setErrors([]); setError(""); setAnalysis("");
+    try {
+      const params = new URLSearchParams({
+        server,
+        samples: String(Math.min(Math.max(parseInt(samples) || 4, 1), 10)),
+        timeout: String(Math.min(Math.max(parseFloat(timeout) || 5, 1), 15)),
+      });
+      const res = await fetch(`${BASE}/tools/ntp?${params}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        setError(err.detail ?? res.statusText);
+        return;
+      }
+      const data = await res.json();
+      setSummary(data.summary);
+      setRows(data.samples ?? []);
+      setErrors(data.errors ?? []);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const analyze = async () => {
+    if (!summary || analyzing) return;
+    setAnalyzing(true); setAnalysis("");
+    try {
+      const desc = [
+        `NTP server: ${summary.server}`,
+        `Stratum: ${summary.stratum}, Ref: ${summary.ref_id}`,
+        `Offset: mean ${summary.offset_mean_ms} ms, jitter ${summary.offset_jitter_ms} ms`,
+        `Round-trip delay: mean ${summary.delay_mean_ms} ms`,
+        `Root delay: ${summary.root_delay_ms} ms, Root dispersion: ${summary.root_dispersion_ms} ms`,
+        `LI: ${summary.li_text}`,
+        `Samples OK: ${summary.samples_ok}, Errors: ${summary.samples_err}`,
+      ].join("\n");
+      const resp = await axios.post("/api/tools/analyze", { tool: "ntp", output: desc });
+      setAnalysis(resp.data.analysis ?? "");
+    } catch (e: unknown) {
+      setAnalysis(`[error] ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const liColor = summary
+    ? summary.li === 3 ? "text-danger" : summary.li > 0 ? "text-warning" : "text-success"
+    : "text-muted";
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Controls */}
+      <div className="shrink-0 border-b border-border bg-surface px-4 py-3 flex flex-wrap items-center gap-3">
+        <Clock className="w-4 h-4 text-accent shrink-0" />
+        <input
+          type="text" value={server} onChange={e => setServer(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && run()}
+          placeholder="NTP server (e.g. pool.ntp.org)"
+          className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground placeholder-muted-dim focus:outline-none focus:border-accent w-52"
+        />
+        <label className="text-muted text-xs shrink-0">Samples</label>
+        <input
+          type="number" value={samples} onChange={e => setSamples(e.target.value)}
+          min={1} max={10}
+          className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground w-14 focus:outline-none focus:border-accent"
+        />
+        <label className="text-muted text-xs shrink-0">Timeout (s)</label>
+        <input
+          type="number" value={timeout} onChange={e => setTimeout_(e.target.value)}
+          min={1} max={15}
+          className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground w-14 focus:outline-none focus:border-accent"
+        />
+        <button
+          onClick={run} disabled={running}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-success-emphasis hover:bg-success-emphasis-hover text-white disabled:opacity-50 transition-colors"
+        >
+          {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+          {running ? "Querying…" : "Query"}
+        </button>
+        {summary && !running && (
+          <button
+            onClick={analyze} disabled={analyzing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-accent-emphasis hover:bg-accent-emphasis-hover text-white disabled:opacity-50 transition-colors"
+          >
+            <Brain className="w-3 h-3" />
+            {analyzing ? "Analyzing…" : "Analyze with LLM"}
+          </button>
+        )}
+      </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="shrink-0 px-4 py-2 bg-danger-emphasis/20 border-b border-danger text-danger text-xs">{error}</div>
+      )}
+
+      {/* Body */}
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        {!summary && !running && !error && (
+          <div className="flex items-center justify-center h-full text-muted-dim text-xs">
+            Enter an NTP server and click Query.
+          </div>
+        )}
+
+        {/* Summary cards */}
+        {summary && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {/* Offset */}
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Mean Offset</div>
+              <div className={`text-xl font-mono font-bold ${offsetColor(summary.offset_mean_ms)}`}>
+                {summary.offset_mean_ms > 0 ? "+" : ""}{summary.offset_mean_ms} ms
+              </div>
+              <div className="text-[10px] text-muted mt-1">
+                jitter {summary.offset_jitter_ms} ms &nbsp;·&nbsp;
+                [{summary.offset_min_ms}, {summary.offset_max_ms}]
+              </div>
+            </div>
+            {/* Delay */}
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Round-Trip Delay</div>
+              <div className="text-xl font-mono font-bold text-foreground">{summary.delay_mean_ms} ms</div>
+              <div className="text-[10px] text-muted mt-1">
+                min {summary.delay_min_ms} ms · max {summary.delay_max_ms} ms
+              </div>
+            </div>
+            {/* Stratum */}
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Stratum</div>
+              <div className="text-xl font-mono font-bold text-accent">{summary.stratum}</div>
+              <div className="text-[10px] text-muted mt-1 truncate" title={summary.ref_id}>
+                Ref: {summary.ref_id || "—"}
+              </div>
+            </div>
+            {/* LI / Status */}
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Leap Indicator</div>
+              <div className={`text-sm font-semibold ${liColor}`}>{summary.li_text}</div>
+              <div className="text-[10px] text-muted mt-1">
+                Root delay {summary.root_delay_ms} ms · dispersion {summary.root_dispersion_ms} ms
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Per-sample table */}
+        {rows.length > 0 && (
+          <div className="border border-border rounded overflow-hidden">
+            <div className="px-3 py-2 bg-surface border-b border-border text-[10px] text-muted uppercase tracking-wider font-semibold">
+              Per-sample measurements
+            </div>
+            <table className="w-full text-xs border-collapse">
+              <thead className="bg-surface text-muted">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">#</th>
+                  <th className="px-3 py-2 text-right font-medium">Offset (ms)</th>
+                  <th className="px-3 py-2 text-right font-medium">Delay (ms)</th>
+                  <th className="px-3 py-2 text-left font-medium">Stratum</th>
+                  <th className="px-3 py-2 text-left font-medium">Ref ID</th>
+                  <th className="px-3 py-2 text-left font-medium">LI</th>
+                  <th className="px-3 py-2 text-right font-medium">Root Delay</th>
+                  <th className="px-3 py-2 text-right font-medium">Root Disp.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r.sample} className="border-t border-border-subtle hover:bg-surface transition-colors">
+                    <td className="px-3 py-1.5 text-muted">{r.sample}</td>
+                    <td className={`px-3 py-1.5 text-right font-mono font-semibold ${offsetColor(r.offset_ms)}`}>
+                      {r.offset_ms > 0 ? "+" : ""}{r.offset_ms}
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-mono text-foreground">{r.delay_ms}</td>
+                    <td className="px-3 py-1.5 font-mono text-accent">{r.stratum}</td>
+                    <td className="px-3 py-1.5 font-mono text-foreground">{r.ref_id}</td>
+                    <td className={`px-3 py-1.5 text-[10px] ${r.li === 3 ? "text-danger" : r.li > 0 ? "text-warning" : "text-success"}`}>
+                      {r.li_text}
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-mono text-muted">{r.root_delay_ms} ms</td>
+                    <td className="px-3 py-1.5 text-right font-mono text-muted">{r.root_dispersion_ms} ms</td>
+                  </tr>
+                ))}
+                {errors.map(e => (
+                  <tr key={e.sample} className="border-t border-border-subtle">
+                    <td className="px-3 py-1.5 text-muted">{e.sample}</td>
+                    <td colSpan={7} className="px-3 py-1.5 text-danger text-[10px]">{e.error}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* LLM analysis */}
+        {(analysis || analyzing) && (
+          <div className="border border-border rounded p-4 bg-surface">
+            <div className="text-accent text-xs font-semibold mb-2 flex items-center gap-1.5">
+              <Brain className="w-3.5 h-3.5" /> LLM Analysis
+            </div>
+            {analyzing
+              ? <div className="text-muted text-xs animate-pulse">Thinking…</div>
+              : <div className="text-foreground text-xs leading-relaxed whitespace-pre-wrap">{analysis}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ── PTP Probe ─────────────────────────────────────────────────────────────────
+
+interface PTPClock {
+  src_ip: string;
+  ptp_version: number;
+  domain: number;
+  clock_id: string;
+  port: number;
+  log_announce_interval: number;
+  utc_offset_s: number;
+  gm_priority1: number;
+  gm_priority2: number;
+  gm_clock_class: number;
+  gm_clock_accuracy: string;
+  gm_offset_scaled_log_variance: number;
+  gm_identity: string;
+  steps_removed: number;
+  time_source: string;
+  two_step: boolean;
+  utc_reasonable: boolean;
+  leap_61: boolean;
+  leap_59: boolean;
+}
+
+interface PTPResult {
+  clocks: PTPClock[];
+  count: number;
+  all_msg_counts: Record<string, number>;
+  warnings: string[];
+  duration_s: number;
+  multicast_group: string;
+  port: number;
+}
+
+function gmPriorityColor(p: number): string {
+  if (p <= 64)  return "text-success";
+  if (p <= 128) return "text-warning";
+  return "text-muted";
+}
+
+function PTPTool() {
+  const [timeout, setTimeout_] = useState("5");
+  const [iface,   setIface]   = useState("");
+  const [running, setRunning] = useState(false);
+  const [result,  setResult]  = useState<PTPResult | null>(null);
+  const [error,   setError]   = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const run = async () => {
+    if (running) return;
+    setRunning(true); setResult(null); setError(""); setElapsed(0);
+    const started = Date.now();
+    timerRef.current = setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 500);
+    try {
+      const params = new URLSearchParams({
+        timeout: String(Math.min(Math.max(parseFloat(timeout) || 5, 1), 30)),
+      });
+      if (iface.trim()) params.set("iface", iface.trim());
+      const res = await fetch(`${BASE}/tools/ptp?${params}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        setError(err.detail ?? res.statusText);
+        return;
+      }
+      const data: PTPResult = await res.json();
+      setResult(data);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      clearInterval(timerRef.current!);
+      setRunning(false);
+    }
+  };
+
+  const totalMsgs = result
+    ? Object.values(result.all_msg_counts).reduce((a, b) => a + b, 0)
+    : 0;
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Controls */}
+      <div className="shrink-0 border-b border-border bg-surface px-4 py-3 flex flex-wrap items-center gap-3">
+        <Radio className="w-4 h-4 text-accent shrink-0" />
+        <label className="text-muted text-xs shrink-0">Listen (s)</label>
+        <input
+          type="number" value={timeout} onChange={e => setTimeout_(e.target.value)}
+          min={1} max={30}
+          className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground w-14 focus:outline-none focus:border-accent"
+        />
+        <input
+          type="text" value={iface} onChange={e => setIface(e.target.value)}
+          placeholder="Local IP (optional)"
+          className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground placeholder-muted-dim focus:outline-none focus:border-accent w-36"
+        />
+        <button
+          onClick={run} disabled={running}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-success-emphasis hover:bg-success-emphasis-hover text-white disabled:opacity-50 transition-colors"
+        >
+          {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+          {running ? `Listening… ${elapsed}s` : "Listen"}
+        </button>
+        <span className="text-[10px] text-muted ml-auto">
+          Multicast 224.0.1.129:320 · IEEE 1588-2008
+        </span>
+      </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="shrink-0 px-4 py-2 bg-danger-emphasis/20 border-b border-danger text-danger text-xs whitespace-pre-wrap">{error}</div>
+      )}
+
+      {/* Warnings */}
+      {result?.warnings?.map((w, i) => (
+        <div key={i} className="shrink-0 px-4 py-1.5 bg-warning-subtle border-b border-attention text-attention text-[10px]">{w}</div>
+      ))}
+
+      {/* Body */}
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        {!result && !running && !error && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+            <Radio className="w-8 h-8 text-muted-dim" />
+            <p className="text-muted-dim text-xs max-w-xs">
+              Listens on UDP port 320 for PTP Announce messages from IEEE 1588 grandmaster clocks.
+              <br /><br />
+              Requires UDP port 320 to be available. Run as administrator if binding fails.
+            </p>
+          </div>
+        )}
+
+        {running && (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-2 border-accent/20 animate-ping" />
+              <div className="absolute inset-2 rounded-full border-2 border-accent/40 animate-ping" style={{ animationDelay: "0.5s" }} />
+              <Radio className="absolute inset-0 m-auto w-6 h-6 text-accent" />
+            </div>
+            <p className="text-muted text-xs">Listening on 224.0.1.129:320 — {elapsed}s / {timeout}s</p>
+          </div>
+        )}
+
+        {/* Stats row */}
+        {result && (
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Clocks Found</div>
+              <div className={`text-2xl font-mono font-bold ${result.count > 0 ? "text-success" : "text-muted"}`}>{result.count}</div>
+            </div>
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">PTP Frames</div>
+              <div className="text-2xl font-mono font-bold text-foreground">{totalMsgs}</div>
+            </div>
+            <div className="bg-surface border border-border rounded p-3">
+              <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Listen Time</div>
+              <div className="text-2xl font-mono font-bold text-foreground">{result.duration_s}s</div>
+            </div>
+            {Object.keys(result.all_msg_counts).length > 0 && (
+              <div className="bg-surface border border-border rounded p-3 col-span-1 sm:col-span-1">
+                <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Message Types</div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {Object.entries(result.all_msg_counts).map(([k, v]) => (
+                    <span key={k} className="text-[9px] font-mono bg-border px-1.5 py-0.5 rounded text-muted">
+                      {k} ×{v}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* No clocks found */}
+        {result && result.count === 0 && (
+          <div className="border border-border rounded p-6 text-center text-muted text-xs">
+            No PTP Announce messages received in {result.duration_s}s.<br />
+            <span className="text-muted-dim">Ensure a PTP grandmaster is active on the network segment and multicast routing is enabled.</span>
+          </div>
+        )}
+
+        {/* Clock cards */}
+        {result?.clocks.map(clock => (
+          <div key={clock.clock_id} className="border border-border rounded overflow-hidden">
+            {/* Card header */}
+            <div className="px-4 py-2.5 bg-surface border-b border-border flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-xs text-accent font-bold">{clock.clock_id}</span>
+              <span className="text-[10px] text-muted">from {clock.src_ip}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-border text-foreground font-mono">PTPv{clock.ptp_version}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-border text-foreground font-mono">Domain {clock.domain}</span>
+              {clock.two_step && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-emphasis/20 text-accent">Two-step</span>
+              )}
+              {clock.utc_reasonable && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-success-emphasis/20 text-success">UTC reasonable</span>
+              )}
+              {clock.leap_61 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-subtle text-attention">Leap +61</span>
+              )}
+              {clock.leap_59 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-subtle text-attention">Leap +59</span>
+              )}
+            </div>
+            {/* Two-column detail grid */}
+            <div className="grid grid-cols-2 gap-0 sm:grid-cols-4 text-xs">
+              {[
+                ["GM Identity",   clock.gm_identity],
+                ["GM Priority 1", <span className={gmPriorityColor(clock.gm_priority1)}>{clock.gm_priority1}</span>],
+                ["GM Priority 2", <span className={gmPriorityColor(clock.gm_priority2)}>{clock.gm_priority2}</span>],
+                ["Clock Class",   clock.gm_clock_class],
+                ["Accuracy",      clock.gm_clock_accuracy],
+                ["Time Source",   clock.time_source],
+                ["Steps Removed", clock.steps_removed],
+                ["UTC Offset",    `${clock.utc_offset_s} s`],
+                ["Port",          clock.port],
+                ["Ann. Interval", `${Math.pow(2, clock.log_announce_interval).toFixed(1)} s`],
+              ].map(([label, value], i) => (
+                <div key={i} className="border-r border-b border-border-subtle px-3 py-2">
+                  <div className="text-[9px] text-muted uppercase tracking-wider mb-0.5">{label}</div>
+                  <div className="font-mono text-foreground truncate">{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 // ── Top-level NetworkTools with tab switcher ──────────────────────────────────
 
-type Tab = "scanner" | "tools";
+type Tab = "scanner" | "tools" | "time";
 
 export function NetworkTools() {
   const [tab, setTab] = useState<Tab>("scanner");
@@ -731,11 +1228,59 @@ export function NetworkTools() {
         >
           <Play className="w-3.5 h-3.5" /> Network Tools
         </button>
+        <button
+          onClick={() => setTab("time")}
+          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-t transition-colors ${
+            tab === "time"
+              ? "bg-surface text-foreground border border-b-surface border-border"
+              : "text-muted hover:text-foreground"
+          }`}
+        >
+          <Clock className="w-3.5 h-3.5" /> Time Protocols
+        </button>
       </div>
 
       {/* Tab content */}
       <div className="flex-1 overflow-hidden">
-        {tab === "scanner" ? <SubnetScanner /> : <TerminalTools />}
+        {tab === "scanner" ? <SubnetScanner /> : tab === "tools" ? <TerminalTools /> : <TimeProtocolsTab />}
+      </div>
+    </div>
+  );
+}
+
+// ── Time Protocols sub-tab ────────────────────────────────────────────────────
+
+type TimeTab = "ntp" | "ptp";
+
+function TimeProtocolsTab() {
+  const [tab, setTab] = useState<TimeTab>("ntp");
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="shrink-0 flex border-b border-border bg-background/50 px-3 pt-1 gap-1">
+        <button
+          onClick={() => setTab("ntp")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium rounded-t transition-colors ${
+            tab === "ntp"
+              ? "bg-surface text-accent border border-b-surface border-border"
+              : "text-muted hover:text-foreground"
+          }`}
+        >
+          <Clock className="w-3 h-3" /> NTP Query
+        </button>
+        <button
+          onClick={() => setTab("ptp")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium rounded-t transition-colors ${
+            tab === "ptp"
+              ? "bg-surface text-accent border border-b-surface border-border"
+              : "text-muted hover:text-foreground"
+          }`}
+        >
+          <Radio className="w-3 h-3" /> PTP Probe
+        </button>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        {tab === "ntp" ? <NTPTool /> : <PTPTool />}
       </div>
     </div>
   );

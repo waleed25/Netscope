@@ -4,6 +4,7 @@ REST API routes for the Wireshark AI Agent.
 
 from __future__ import annotations
 import os
+import time
 import asyncio
 import logging
 import traceback
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import httpx
 
 from config import settings
@@ -913,9 +914,15 @@ async def _auto_insight(packets: list[dict], source: str):
 
 # ── Network Tools ─────────────────────────────────────────────────────────────
 
+def _safe_str(value: object, max_len: int = 8192) -> str:
+    """Strip non-printable characters and cap length (prompt-injection defence)."""
+    s = str(value) if value is not None else ""
+    return "".join(c for c in s if c.isprintable())[:max_len]
+
+
 class ToolAnalyzeRequest(BaseModel):
     tool: str
-    output: str
+    output: str = Field(..., max_length=8192)
 
 
 # Map of tool name → (executable, arg_builder)
@@ -1071,7 +1078,7 @@ async def analyze_tool_output(req: ToolAnalyzeRequest):
     """Send captured tool output to the LLM for analysis."""
     prompt = (
         f"The user ran the network diagnostic tool '{req.tool}' on Windows.\n"
-        f"Here is the output:\n\n```\n{req.output}\n```\n\n"
+        f"Here is the output:\n\n```\n{_safe_str(req.output)[:8192]}\n```\n\n"
         "Briefly explain what this output means, highlight anything notable "
         "(unusual ports, high latency hops, ARP conflicts, etc.), "
         "and suggest any follow-up actions if appropriate."
@@ -1256,6 +1263,332 @@ async def subnet_scan(
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ── NTP Tester ─────────────────────────────────────────────────────────────────
+
+import struct as _struct
+
+# Seconds between NTP epoch (1900-01-01) and Unix epoch (1970-01-01)
+_NTP_EPOCH_OFFSET = 2_208_988_800
+
+_NTP_LI_TEXT = [
+    "no warning",
+    "last minute has 61 seconds",
+    "last minute has 59 seconds",
+    "alarm — clock unsynchronised",
+]
+
+
+def _ntp_query_once(server: str, timeout: float = 5.0) -> dict:
+    """Send one NTP client request and return parsed fields."""
+    import socket as _sock
+
+    packet = bytearray(48)
+    packet[0] = 0x1B  # LI=0, VN=3, Mode=3 (client)
+
+    with _sock.socket(_sock.AF_INET, _sock.SOCK_DGRAM) as s:
+        s.settimeout(timeout)
+        t1 = time.time()
+        s.sendto(bytes(packet), (server, 123))
+        data, _ = s.recvfrom(1024)
+        t4 = time.time()
+
+    if len(data) < 48:
+        raise ValueError(f"Response too short ({len(data)} bytes)")
+
+    li       = (data[0] >> 6) & 0x3
+    vn       = (data[0] >> 3) & 0x7
+    stratum  = data[1]
+    poll     = data[2]
+    prec     = data[3] if data[3] < 128 else data[3] - 256
+
+    root_delay      = _struct.unpack_from("!I", data,  4)[0] / 65536.0
+    root_dispersion = _struct.unpack_from("!I", data,  8)[0] / 65536.0
+
+    ref_id_bytes = data[12:16]
+    if stratum <= 1:
+        ref_id = ref_id_bytes.rstrip(b"\x00").decode("ascii", errors="replace")
+    else:
+        ref_id = ".".join(str(b) for b in ref_id_bytes)
+
+    def _ntp_ts(buf: bytes, off: int) -> float:
+        secs = _struct.unpack_from("!I", buf, off)[0]
+        frac = _struct.unpack_from("!I", buf, off + 4)[0]
+        return secs - _NTP_EPOCH_OFFSET + frac / 4_294_967_296.0
+
+    t2 = _ntp_ts(data, 32)   # server receive
+    t3 = _ntp_ts(data, 40)   # server transmit
+
+    offset_s = ((t2 - t1) + (t3 - t4)) / 2.0
+    delay_s  = (t4 - t1) - (t3 - t2)
+
+    return {
+        "li":               li,
+        "li_text":          _NTP_LI_TEXT[li],
+        "version":          vn,
+        "stratum":          stratum,
+        "poll_interval_s":  2 ** min(max(poll, 0), 17),
+        "precision_exp":    prec,
+        "ref_id":           ref_id,
+        "root_delay_ms":    round(root_delay * 1000, 3),
+        "root_dispersion_ms": round(root_dispersion * 1000, 3),
+        "offset_ms":        round(offset_s * 1000, 3),
+        "delay_ms":         round(delay_s  * 1000, 3),
+        "rx_time":          round(t4, 3),
+    }
+
+
+@router.get("/tools/ntp")
+async def ntp_query(
+    server:  str   = Query("pool.ntp.org", description="NTP server hostname or IP"),
+    samples: int   = Query(4, ge=1, le=10, description="Number of samples to collect"),
+    timeout: float = Query(5.0, ge=1.0, le=15.0, description="Per-sample socket timeout (s)"),
+):
+    """
+    Query an NTP server *samples* times and return per-sample measurements
+    plus an aggregate summary (mean/min/max offset, jitter, delay).
+    """
+    target = _validate_target(server) or "pool.ntp.org"
+    loop   = asyncio.get_running_loop()
+
+    results: list[dict] = []
+    errors:  list[dict] = []
+
+    for i in range(samples):
+        try:
+            sample = await loop.run_in_executor(None, _ntp_query_once, target, timeout)
+            sample["sample"] = i + 1
+            results.append(sample)
+            if i < samples - 1:
+                await asyncio.sleep(0.5)   # brief inter-sample gap
+        except Exception as exc:
+            errors.append({"sample": i + 1, "error": str(exc)})
+
+    if not results:
+        detail = errors[-1]["error"] if errors else "unknown error"
+        raise HTTPException(status_code=502, detail=f"All NTP queries failed: {detail}")
+
+    offsets = [r["offset_ms"] for r in results]
+    delays  = [r["delay_ms"]  for r in results]
+    n       = len(offsets)
+    mean_off = sum(offsets) / n
+    variance = sum((x - mean_off) ** 2 for x in offsets) / n
+    jitter   = variance ** 0.5
+
+    summary = {
+        "server":             target,
+        "samples_ok":         n,
+        "samples_err":        len(errors),
+        "stratum":            results[0]["stratum"],
+        "ref_id":             results[0]["ref_id"],
+        "li":                 results[0]["li"],
+        "li_text":            results[0]["li_text"],
+        "version":            results[0]["version"],
+        "root_delay_ms":      results[0]["root_delay_ms"],
+        "root_dispersion_ms": results[0]["root_dispersion_ms"],
+        "offset_mean_ms":     round(mean_off, 3),
+        "offset_min_ms":      round(min(offsets), 3),
+        "offset_max_ms":      round(max(offsets), 3),
+        "offset_jitter_ms":   round(jitter, 3),
+        "delay_mean_ms":      round(sum(delays) / n, 3),
+        "delay_min_ms":       round(min(delays), 3),
+        "delay_max_ms":       round(max(delays), 3),
+    }
+
+    return {"summary": summary, "samples": results, "errors": errors}
+
+
+# ── PTP (IEEE 1588) Probe ──────────────────────────────────────────────────────
+
+_PTP_MULTICAST_ADDR = "224.0.1.129"
+_PTP_GENERAL_PORT   = 320
+
+_PTP_MSG_TYPES = {
+    0x00: "Sync",         0x01: "Delay_Req",
+    0x02: "PDelay_Req",   0x03: "PDelay_Resp",
+    0x08: "Follow_Up",    0x09: "Delay_Resp",
+    0x0A: "PDelay_Resp_Follow_Up",
+    0x0B: "Announce",     0x0C: "Signaling",
+    0x0D: "Management",
+}
+
+_PTP_TIME_SOURCES = {
+    0x10: "ATOMIC_CLOCK",   0x20: "GPS",
+    0x30: "TERRESTRIAL_RADIO", 0x39: "SERIAL_TIME_CODE",
+    0x40: "PTP",            0x50: "NTP",
+    0x60: "HAND_SET",       0x90: "OTHER",
+    0xA0: "INTERNAL_OSCILLATOR",
+}
+
+_PTP_CLOCK_ACCURACY = {
+    0x20: "25 ns",   0x21: "100 ns",  0x22: "250 ns",  0x23: "1 µs",
+    0x24: "2.5 µs",  0x25: "10 µs",  0x26: "25 µs",   0x27: "100 µs",
+    0x28: "250 µs",  0x29: "1 ms",   0x2A: "2.5 ms",  0x2B: "10 ms",
+    0x2C: "25 ms",   0x2D: "100 ms", 0x2E: "250 ms",  0x2F: "1 s",
+    0x30: "10 s",    0x31: ">10 s",  0xFE: "Unknown", 0xFF: "Reserved",
+}
+
+
+def _fmt_clock_id(b: bytes) -> str:
+    return "-".join(f"{x:02X}" for x in b)
+
+
+def _parse_ptp_announce(data: bytes, src_ip: str) -> dict | None:
+    """Parse a PTP v2 Announce message. Returns None if packet is not a valid Announce."""
+    if len(data) < 64:
+        return None
+    msg_type = data[0] & 0x0F
+    version  = data[1] & 0x0F
+    if msg_type != 0x0B or version < 2:
+        return None
+
+    domain    = data[4]
+    flags     = _struct.unpack_from("!H", data, 6)[0]
+    clock_id  = data[20:28]
+    port_num  = _struct.unpack_from("!H", data, 28)[0]
+    seq_id    = _struct.unpack_from("!H", data, 30)[0]
+    log_intv  = data[33] if data[33] < 128 else data[33] - 256
+
+    # Announce body (offset 34)
+    # originTimestamp 10 bytes (34-43), currentUtcOffset 2 (44), reserved 1 (46)
+    # gmPriority1 1 (46), gmClockQuality 4 (47-50), gmPriority2 1 (51)
+    # gmIdentity 8 (52-59), stepsRemoved 2 (60-61), timeSource 1 (62)
+    if len(data) < 63:
+        return None
+
+    utc_offset   = _struct.unpack_from("!h", data, 44)[0]
+    gm_prio1     = data[46]
+    gm_clk_class = data[47]
+    gm_clk_acc   = data[48]
+    gm_oslv      = _struct.unpack_from("!H", data, 49)[0]
+    gm_prio2     = data[51]
+    gm_identity  = data[52:60]
+    steps_removed = _struct.unpack_from("!H", data, 60)[0]
+    time_source  = data[62] if len(data) > 62 else 0xFF
+
+    return {
+        "src_ip":              src_ip,
+        "ptp_version":         version,
+        "domain":              domain,
+        "clock_id":            _fmt_clock_id(clock_id),
+        "port":                port_num,
+        "seq_id":              seq_id,
+        "log_announce_interval": log_intv,
+        "utc_offset_s":        utc_offset,
+        "gm_priority1":        gm_prio1,
+        "gm_priority2":        gm_prio2,
+        "gm_clock_class":      gm_clk_class,
+        "gm_clock_accuracy":   _PTP_CLOCK_ACCURACY.get(gm_clk_acc, f"0x{gm_clk_acc:02X}"),
+        "gm_clock_accuracy_code": gm_clk_acc,
+        "gm_offset_scaled_log_variance": gm_oslv,
+        "gm_identity":         _fmt_clock_id(gm_identity),
+        "steps_removed":       steps_removed,
+        "time_source":         _PTP_TIME_SOURCES.get(time_source, f"0x{time_source:02X}"),
+        "time_source_code":    time_source,
+        "flags":               flags,
+        "two_step":            bool(flags & 0x0200),
+        "utc_reasonable":      bool(flags & 0x0004),
+        "leap_61":             bool(flags & 0x0001),
+        "leap_59":             bool(flags & 0x0002),
+    }
+
+
+def _ptp_probe_sync(listen_timeout: float = 5.0, local_iface: str = "") -> dict:
+    """
+    Bind UDP port 320 and join the PTP multicast group 224.0.1.129.
+    Collect all Announce messages received within *listen_timeout* seconds.
+    Returns a dict with 'clocks' (list) and 'all_msgs' counter.
+    """
+    import socket as _sock
+
+    discovered: dict[str, dict] = {}   # clock_id → latest announce
+    msg_counts: dict[str, int]  = {}   # msg_type_name → count
+    errors_seen: list[str]      = []
+
+    try:
+        s = _sock.socket(_sock.AF_INET, _sock.SOCK_DGRAM, _sock.IPPROTO_UDP)
+        s.setsockopt(_sock.SOL_SOCKET, _sock.SO_REUSEADDR, 1)
+        s.bind(("", _PTP_GENERAL_PORT))
+        s.settimeout(0.25)
+
+        # Join 224.0.1.129 multicast group
+        iface_bytes = _sock.inet_aton(local_iface) if local_iface else b"\x00\x00\x00\x00"
+        mreq = _sock.inet_aton(_PTP_MULTICAST_ADDR) + iface_bytes
+        try:
+            s.setsockopt(_sock.IPPROTO_IP, _sock.IP_ADD_MEMBERSHIP, mreq)
+        except OSError as exc:
+            errors_seen.append(f"Multicast join failed: {exc}")
+
+        deadline = time.time() + listen_timeout
+        while time.time() < deadline:
+            try:
+                data, (src_ip, _) = s.recvfrom(1500)
+                # Track every PTP message type seen
+                if len(data) >= 1:
+                    mtype = _PTP_MSG_TYPES.get(data[0] & 0x0F, f"0x{data[0] & 0x0F:02X}")
+                    msg_counts[mtype] = msg_counts.get(mtype, 0) + 1
+                parsed = _parse_ptp_announce(data, src_ip)
+                if parsed:
+                    discovered[parsed["clock_id"]] = parsed
+            except _sock.timeout:
+                continue
+            except OSError:
+                break
+    except OSError as exc:
+        return {
+            "clocks": [], "all_msg_counts": {},
+            "error": str(exc),
+            "bind_failed": True,
+        }
+    finally:
+        try:
+            s.close()
+        except Exception:
+            pass
+
+    return {
+        "clocks": list(discovered.values()),
+        "all_msg_counts": msg_counts,
+        "errors": errors_seen,
+        "bind_failed": False,
+    }
+
+
+@router.get("/tools/ptp")
+async def ptp_probe(
+    timeout: float = Query(5.0, ge=1.0, le=30.0, description="Listen window in seconds"),
+    iface:   str   = Query("", description="Local interface IP (empty = any)"),
+):
+    """
+    Listen for IEEE 1588 PTP v2 Announce messages on the multicast group
+    224.0.1.129 port 320.  Returns all discovered grandmaster clocks.
+    """
+    if iface:
+        _validate_target(iface)
+
+    loop = asyncio.get_running_loop()
+    result = await asyncio.wait_for(
+        loop.run_in_executor(None, _ptp_probe_sync, timeout, iface),
+        timeout=timeout + 3.0,
+    )
+
+    if result.get("bind_failed"):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cannot bind UDP port {_PTP_GENERAL_PORT}: {result.get('error')}. "
+                   "Try running as administrator or check if another PTP service is active.",
+        )
+
+    return {
+        "clocks":          result["clocks"],
+        "count":           len(result["clocks"]),
+        "all_msg_counts":  result.get("all_msg_counts", {}),
+        "warnings":        result.get("errors", []),
+        "duration_s":      timeout,
+        "multicast_group": _PTP_MULTICAST_ADDR,
+        "port":            _PTP_GENERAL_PORT,
+    }
 
 
 # ── Expert Analysis ───────────────────────────────────────────────────────────
