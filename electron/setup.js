@@ -41,8 +41,10 @@ const OLLAMA_EXE   = path.join(VENDOR_DIR,  'ollama.exe'); // bundled portable b
 const MODEL_TABLE = [
   // { minVramGB, model, label }
   { minVramGB: 12, model: 'qwen2.5:14b',  label: 'qwen2.5:14b  (14B — high quality, ~9 GB download)' },
+  { minVramGB:  6, model: 'gemma4:12b',   label: 'gemma4:12b   (12B — Google Gemma 4, ~8 GB download)' },
   { minVramGB:  6, model: 'qwen3:4b',     label: 'qwen3:4b     (4B  — tool calling, ~2.6 GB download)' },
   { minVramGB:  6, model: 'gemma3:4b',    label: 'gemma3:4b    (4B  — tool calling, ~3.0 GB download)' },
+  { minVramGB:  4, model: 'gemma4:4b',    label: 'gemma4:4b    (4B  — Google Gemma 4, ~3.5 GB download)' },
   { minVramGB:  6, model: 'qwen2.5:7b',   label: 'qwen2.5:7b   (7B  — balanced,     ~5 GB download)' },
   { minVramGB:  0, model: 'qwen2.5:3b',   label: 'qwen2.5:3b   (3B  — fast/light,   ~2 GB download)' },
 ];
