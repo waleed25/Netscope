@@ -1400,6 +1400,112 @@ async def ntp_query(
     return {"summary": summary, "samples": results, "errors": errors}
 
 
+# ── NTP Sync Comparison ────────────────────────────────────────────────────────
+
+async def _ntp_single(host: str, samples: int, timeout: float) -> dict:
+    """Query an NTP host N times and return mean offset + metadata. Raises on total failure."""
+    loop = asyncio.get_running_loop()
+    results, errors = [], []
+    for i in range(samples):
+        try:
+            s = await loop.run_in_executor(None, _ntp_query_once, host, timeout)
+            results.append(s)
+            if i < samples - 1:
+                await asyncio.sleep(0.3)
+        except Exception as exc:
+            errors.append(str(exc))
+    if not results:
+        raise ValueError(errors[-1] if errors else "no response")
+    offsets = [r["offset_ms"] for r in results]
+    return {
+        "host":        host,
+        "stratum":     results[0]["stratum"],
+        "ref_id":      results[0]["ref_id"],
+        "li_text":     results[0]["li_text"],
+        "offset_ms":   round(sum(offsets) / len(offsets), 3),
+        "delay_ms":    round(sum(r["delay_ms"] for r in results) / len(results), 3),
+        "jitter_ms":   round((sum((x - sum(offsets)/len(offsets))**2 for x in offsets) / len(offsets))**0.5, 3),
+        "samples_ok":  len(results),
+        "samples_err": len(errors),
+        "reachable":   True,
+    }
+
+
+@router.get("/tools/ntp/compare")
+async def ntp_compare(
+    reference: str   = Query("pool.ntp.org", description="Trusted NTP reference server"),
+    target:    str   = Query(...,             description="Target device to check (IP or hostname)"),
+    samples:   int   = Query(3, ge=1, le=5,  description="Samples per host"),
+    timeout:   float = Query(5.0, ge=1.0, le=15.0),
+    threshold_ms: float = Query(500.0, ge=0.0, description="Max acceptable skew in ms"),
+):
+    """
+    Compare a target device's NTP sync against a reference NTP server.
+
+    Queries both hosts and computes skew = target_offset - ref_offset.
+    A device is 'in sync' when |skew| <= threshold_ms.
+
+    Math: offset returned by NTP ≈ (server_time - local_time).
+    Skew = target_time - reference_time = (local + target_offset) - (local + ref_offset)
+         = target_offset - ref_offset
+    """
+    ref_host = _validate_target(reference) or "pool.ntp.org"
+    tgt_host = _validate_target(target)
+    if not tgt_host:
+        raise HTTPException(status_code=400, detail="Invalid target host")
+
+    # Query both concurrently
+    ref_task = asyncio.create_task(_ntp_single(ref_host, samples, timeout))
+    tgt_task = asyncio.create_task(_ntp_single(tgt_host, samples, timeout))
+
+    ref_result, tgt_result = None, None
+    ref_error,  tgt_error  = None, None
+
+    try:
+        ref_result = await ref_task
+    except Exception as e:
+        ref_error = str(e)
+        ref_result = {"host": ref_host, "reachable": False, "offset_ms": 0.0,
+                      "stratum": -1, "ref_id": "?", "li_text": "?",
+                      "delay_ms": 0.0, "jitter_ms": 0.0, "samples_ok": 0, "samples_err": samples}
+
+    try:
+        tgt_result = await tgt_task
+    except Exception as e:
+        tgt_error = str(e)
+        tgt_result = {"host": tgt_host, "reachable": False, "offset_ms": 0.0,
+                      "stratum": -1, "ref_id": "?", "li_text": "?",
+                      "delay_ms": 0.0, "jitter_ms": 0.0, "samples_ok": 0, "samples_err": samples}
+
+    # Skew calculation
+    skew_ms = round(tgt_result["offset_ms"] - ref_result["offset_ms"], 3) if (ref_result["reachable"] and tgt_result["reachable"]) else None
+    in_sync = (skew_ms is not None) and (abs(skew_ms) <= threshold_ms)
+
+    if not tgt_result["reachable"]:
+        status = "unreachable"
+    elif skew_ms is None:
+        status = "error"
+    elif abs(skew_ms) <= threshold_ms * 0.1:
+        status = "excellent"
+    elif abs(skew_ms) <= threshold_ms * 0.5:
+        status = "good"
+    elif abs(skew_ms) <= threshold_ms:
+        status = "marginal"
+    else:
+        status = "out_of_sync"
+
+    return {
+        "reference":      ref_result,
+        "target":         tgt_result,
+        "skew_ms":        skew_ms,
+        "threshold_ms":   threshold_ms,
+        "in_sync":        in_sync,
+        "status":         status,
+        "ref_error":      ref_error,
+        "target_error":   tgt_error,
+    }
+
+
 # ── PTP (IEEE 1588) Probe ──────────────────────────────────────────────────────
 
 _PTP_MULTICAST_ADDR = "224.0.1.129"

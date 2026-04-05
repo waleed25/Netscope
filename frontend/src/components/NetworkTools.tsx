@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Brain, Play, X, Copy, Check, Wifi, Search, Download, Crosshair, ChevronDown, Loader2, Monitor, Clock, Radio } from "lucide-react";
+import { Brain, Play, X, Copy, Check, Wifi, Search, Download, Crosshair, ChevronDown, Loader2, Monitor, Clock, Radio, ShieldCheck } from "lucide-react";
 import axios from "axios";
 import { BASE } from "../lib/api";
 
@@ -1250,7 +1250,190 @@ export function NetworkTools() {
 
 // ── Time Protocols sub-tab ────────────────────────────────────────────────────
 
-type TimeTab = "ntp" | "ptp";
+// ── NTP Sync Check ─────────────────────────────────────────────────────────────
+
+interface NTPHostResult {
+  host: string; reachable: boolean; offset_ms: number; stratum: number;
+  ref_id: string; li_text: string; delay_ms: number; jitter_ms: number;
+  samples_ok: number; samples_err: number;
+}
+interface NTPCompareResult {
+  reference: NTPHostResult; target: NTPHostResult;
+  skew_ms: number | null; threshold_ms: number;
+  in_sync: boolean; status: string;
+  ref_error: string | null; target_error: string | null;
+}
+
+function syncStatusColor(status: string): string {
+  if (status === "excellent") return "text-success";
+  if (status === "good")      return "text-success";
+  if (status === "marginal")  return "text-warning";
+  if (status === "out_of_sync") return "text-danger";
+  return "text-muted";
+}
+function syncStatusLabel(status: string): string {
+  if (status === "excellent")   return "✓ Excellent sync";
+  if (status === "good")        return "✓ Good sync";
+  if (status === "marginal")    return "⚠ Marginal";
+  if (status === "out_of_sync") return "✗ Out of sync";
+  if (status === "unreachable") return "✗ Target unreachable";
+  return "— Error";
+}
+
+function HostCard({ result, label, error }: { result: NTPHostResult; label: string; error: string | null }) {
+  return (
+    <div className="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">{label}</span>
+        {result.reachable
+          ? <span className="text-[10px] text-success font-mono">● reachable</span>
+          : <span className="text-[10px] text-danger font-mono">● unreachable</span>}
+      </div>
+      <div className="text-xs font-mono text-accent truncate">{result.host}</div>
+      {result.reachable ? (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px]">
+          <div><span className="text-muted">offset </span><span className={offsetColor(result.offset_ms)}>{result.offset_ms > 0 ? "+" : ""}{result.offset_ms} ms</span></div>
+          <div><span className="text-muted">delay </span><span className="text-foreground">{result.delay_ms} ms</span></div>
+          <div><span className="text-muted">stratum </span><span className="text-foreground">{result.stratum}</span></div>
+          <div><span className="text-muted">ref </span><span className="text-foreground">{result.ref_id}</span></div>
+          <div><span className="text-muted">jitter </span><span className="text-foreground">{result.jitter_ms} ms</span></div>
+          <div><span className="text-muted">samples </span><span className="text-foreground">{result.samples_ok}/{result.samples_ok + result.samples_err}</span></div>
+        </div>
+      ) : (
+        <div className="text-[11px] text-danger">{error ?? "No response to NTP query"}</div>
+      )}
+    </div>
+  );
+}
+
+function NTPSyncCheck() {
+  const [reference, setReference] = useState("pool.ntp.org");
+  const [target,    setTarget]    = useState("");
+  const [threshold, setThreshold] = useState("500");
+  const [running,   setRunning]   = useState(false);
+  const [result,    setResult]    = useState<NTPCompareResult | null>(null);
+  const [error,     setError]     = useState("");
+
+  const run = async () => {
+    if (running || !target.trim()) return;
+    setRunning(true); setResult(null); setError("");
+    try {
+      const params = new URLSearchParams({
+        reference, target: target.trim(),
+        threshold_ms: String(parseFloat(threshold) || 500),
+        samples: "3",
+      });
+      const res = await fetch(`${BASE}/tools/ntp/compare?${params}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        setError(err.detail ?? res.statusText); return;
+      }
+      setResult(await res.json());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Controls */}
+      <div className="shrink-0 border-b border-border bg-surface px-4 py-3 flex flex-wrap items-center gap-3">
+        <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-muted">Reference NTP Server</label>
+          <input
+            type="text" value={reference} onChange={e => setReference(e.target.value)}
+            placeholder="pool.ntp.org"
+            className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground placeholder-muted-dim focus:outline-none focus:border-accent w-44"
+          />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-muted">Target Device (IP / hostname)</label>
+          <input
+            type="text" value={target} onChange={e => setTarget(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && run()}
+            placeholder="192.168.1.100"
+            className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground placeholder-muted-dim focus:outline-none focus:border-accent w-44"
+          />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-muted">Max skew (ms)</label>
+          <input
+            type="number" value={threshold} onChange={e => setThreshold(e.target.value)}
+            min={1} placeholder="500"
+            className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground w-20 focus:outline-none focus:border-accent"
+          />
+        </div>
+        <button
+          onClick={run} disabled={running || !target.trim()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-success-emphasis hover:bg-success-emphasis-hover text-white disabled:opacity-50 transition-colors mt-4"
+        >
+          {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+          {running ? "Checking…" : "Check Sync"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="shrink-0 px-4 py-2 bg-danger-emphasis/20 border-b border-danger text-danger text-xs">{error}</div>
+      )}
+
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        {!result && !running && !error && (
+          <div className="flex flex-col items-center justify-center h-full text-muted-dim text-xs gap-2">
+            <ShieldCheck className="w-8 h-8 opacity-20" />
+            <span>Enter a reference NTP server and target device, then click Check Sync.</span>
+            <span className="text-[10px] text-muted">The target must respond to NTP queries (UDP 123). Most NTP servers and many ICS devices do.</span>
+          </div>
+        )}
+
+        {result && (
+          <>
+            {/* Verdict banner */}
+            <div className={`flex items-center gap-3 p-3 rounded border ${
+              result.status === "excellent" || result.status === "good"
+                ? "bg-success/10 border-success/30"
+                : result.status === "marginal"
+                ? "bg-warning/10 border-warning/30"
+                : "bg-danger/10 border-danger/30"
+            }`}>
+              <span className={`text-lg font-bold ${syncStatusColor(result.status)}`}>
+                {syncStatusLabel(result.status)}
+              </span>
+              {result.skew_ms !== null && (
+                <span className="text-xs text-muted ml-auto font-mono">
+                  skew: <span className={`font-semibold ${Math.abs(result.skew_ms) < result.threshold_ms ? "text-success" : "text-danger"}`}>
+                    {result.skew_ms > 0 ? "+" : ""}{result.skew_ms} ms
+                  </span>
+                  {" "}/ threshold: ±{result.threshold_ms} ms
+                </span>
+              )}
+            </div>
+
+            {/* Host cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <HostCard result={result.reference} label="Reference Server" error={result.ref_error} />
+              <HostCard result={result.target}    label="Target Device"   error={result.target_error} />
+            </div>
+
+            {/* Explanation */}
+            <div className="bg-surface border border-border rounded p-3 text-[11px] text-muted space-y-1">
+              <div className="font-semibold text-foreground text-xs mb-1">How to read this</div>
+              <div>• <span className="text-foreground">Skew</span> = target clock − reference clock. Positive means target is ahead.</div>
+              <div>• <span className="text-foreground">Threshold ±{result.threshold_ms} ms</span>: your acceptable sync window.</div>
+              <div>• If the target is <span className="text-danger">unreachable</span>, it does not respond to NTP queries on UDP 123. It may be an NTP client only, or a firewall is blocking the port.</div>
+              <div>• High <span className="text-foreground">delay</span> on the target reduces accuracy — offset error ≈ ±(delay/2).</div>
+              <div>• ICS recommendation: keep skew under <span className="text-success">100 ms</span> for reliable event correlation.</div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type TimeTab = "ntp" | "ptp" | "sync";
 
 function TimeProtocolsTab() {
   const [tab, setTab] = useState<TimeTab>("ntp");
@@ -1278,9 +1461,21 @@ function TimeProtocolsTab() {
         >
           <Radio className="w-3 h-3" /> PTP Probe
         </button>
+        <button
+          onClick={() => setTab("sync")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium rounded-t transition-colors ${
+            tab === "sync"
+              ? "bg-surface text-accent border border-b-surface border-border"
+              : "text-muted hover:text-foreground"
+          }`}
+        >
+          <ShieldCheck className="w-3 h-3" /> Sync Check
+        </button>
       </div>
       <div className="flex-1 overflow-hidden">
-        {tab === "ntp" ? <NTPTool /> : <PTPTool />}
+        {tab === "ntp"  && <NTPTool />}
+        {tab === "ptp"  && <PTPTool />}
+        {tab === "sync" && <NTPSyncCheck />}
       </div>
     </div>
   );
