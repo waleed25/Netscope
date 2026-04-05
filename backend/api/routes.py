@@ -221,6 +221,7 @@ class ChatRequest(BaseModel):
     rag_enabled:      bool      = False   # inject knowledge-base context
     use_hyde:         bool      = False   # HyDE query expansion before retrieval
     analysis_context: str | None = None  # compact deep analysis summary for chat context
+    images:           list[str] = []     # base64 data-URLs for multimodal (Gemma4 / vision models)
 
 
 class LLMBackendRequest(BaseModel):
@@ -565,6 +566,19 @@ async def get_packets_endpoint(
 
 @router.post("/chat")
 async def chat(req: ChatRequest):
+    # Validate image count / size to prevent abuse
+    if len(req.images) > 4:
+        raise HTTPException(status_code=400, detail="Maximum 4 images per message")
+    for img in req.images:
+        if len(img) > 10_000_000:  # ~7.5 MB decoded
+            raise HTTPException(status_code=400, detail="Image too large (max ~7.5 MB each)")
+
+    # Build history label for turns that include images (avoids storing large base64 in memory)
+    def _user_history_content(message: str, images: list[str]) -> str:
+        if images:
+            return f"[{len(images)} image{'s' if len(images) > 1 else ''} attached] {message}"
+        return message
+
     if req.stream:
         async def stream_gen():
             llm_text = ""
@@ -572,24 +586,25 @@ async def chat(req: ChatRequest):
                 # Check if we should generate A2UI
                 from agent.a2ui_generator import should_generate_a2ui, generate_a2ui_response
                 a2ui_component, a2ui_props = should_generate_a2ui(
-                    req.message, 
+                    req.message,
                     {"packets": list(_packets)}
                 )
-                
+
                 # If A2UI, yield it first
                 if a2ui_component:
                     yield generate_a2ui_response(a2ui_component, a2ui_props)
-                
+
                 async for chunk in chat_agent.answer_question_stream(
                     req.message, _packets, _chat_history,
                     rag_enabled=req.rag_enabled, use_hyde=req.use_hyde,
                     analysis_context=req.analysis_context,
+                    images=req.images,
                 ):
                     yield chunk
                     # Sentinel chunks start/end with \x00 — don't add to LLM text history
                     if not chunk.startswith("\x00"):
                         llm_text += chunk
-                _chat_history.append({"role": "user", "content": req.message})
+                _chat_history.append({"role": "user", "content": _user_history_content(req.message, req.images)})
                 _chat_history.append({"role": "assistant", "content": llm_text})
             except Exception as _exc:
                 logger.error("chat stream_gen error: %s\n%s", _exc, traceback.format_exc())
@@ -605,8 +620,9 @@ async def chat(req: ChatRequest):
         req.message, _packets, _chat_history,
         rag_enabled=req.rag_enabled, use_hyde=req.use_hyde,
         analysis_context=req.analysis_context,
+        images=req.images,
     )
-    _chat_history.append({"role": "user", "content": req.message})
+    _chat_history.append({"role": "user", "content": _user_history_content(req.message, req.images)})
     _chat_history.append({"role": "assistant", "content": response})
     return {"response": response}
 

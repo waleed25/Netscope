@@ -263,6 +263,7 @@ export async function sendChatMessage(
   useHyde = false,
   signal?: AbortSignal,
   analysisContext?: string,
+  images?: string[],
 ): Promise<string> {
   const body = {
     message,
@@ -270,6 +271,7 @@ export async function sendChatMessage(
     rag_enabled: ragEnabled,
     use_hyde: useHyde,
     analysis_context: analysisContext ?? null,
+    images: images ?? [],
   };
   if (onToken) {
     // Streaming

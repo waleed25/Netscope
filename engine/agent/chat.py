@@ -381,6 +381,16 @@ def _capture_result_message(summary: str, packets: list[dict]) -> str:
 
 # ── Non-streaming agentic loop ────────────────────────────────────────────────
 
+def _build_user_content(question: str, images: list[str] | None) -> str | list:
+    """Return plain string content or a multimodal content array (OpenAI vision format)."""
+    if not images:
+        return question
+    parts: list[dict] = [{"type": "text", "text": question or "Describe this image."}]
+    for data_url in images:
+        parts.append({"type": "image_url", "image_url": {"url": data_url}})
+    return parts
+
+
 async def answer_question(
     question:         str,
     packets:          list[dict],
@@ -389,6 +399,7 @@ async def answer_question(
     use_hyde:         bool = False,
     is_channel:       bool = False,
     analysis_context: str | None = None,
+    images:           list[str] | None = None,
 ) -> str:
     messages, rag_chunks = await _base_messages(
         packets, history, question, rag_enabled, use_hyde,
@@ -405,7 +416,7 @@ async def answer_question(
                 "Try uploading additional documentation or rephrasing using specific CLI syntax."
             )
 
-    messages.append({"role": "user", "content": question})
+    messages.append({"role": "user", "content": _build_user_content(question, images)})
 
     max_rounds = settings.autonomous_max_rounds if _autonomous_mode else MAX_TOOL_ROUNDS
     for _round in range(max_rounds + 1):
@@ -443,6 +454,7 @@ async def answer_question_stream(
     rag_enabled:      bool = False,
     use_hyde:         bool = False,
     analysis_context: str | None = None,
+    images:           list[str] | None = None,
 ) -> AsyncGenerator[str, None]:
     messages, rag_chunks = await _base_messages(
         packets, history, question, rag_enabled, use_hyde,
@@ -459,7 +471,7 @@ async def answer_question_stream(
             )
             return
 
-    messages.append({"role": "user", "content": question})
+    messages.append({"role": "user", "content": _build_user_content(question, images)})
 
     collected_full_response = ""
 

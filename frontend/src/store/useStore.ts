@@ -27,6 +27,8 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  /** Base64 data-URLs for images attached to this message (user messages only) */
+  images?: string[];
 }
 
 export interface Interface {
