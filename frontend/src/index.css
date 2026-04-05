@@ -9,34 +9,37 @@
 
   /* ── Light theme (default) ────────────────────────────────────────────── */
   :root {
-    --color-background:          255 255 255;
-    --color-surface:             242 242 247;
-    --color-surface-hover:       229 229 234;
-    --color-surface-active:      209 209 214;
-    --color-border:              216 216 220;
-    --color-border-subtle:       229 229 234;
-    --color-foreground:          0 0 0;
-    --color-muted:               138 138 142;
-    --color-muted-dim:           174 174 178;
-    --color-accent:              0 122 255;
-    --color-success:             52 199 89;
-    --color-warning:             255 149 0;
-    --color-danger:              255 59 48;
-    --color-purple:              175 82 222;
-    --color-accent-muted:        90 160 255;
-    --color-severe:              255 59 48;
-    --color-pink:                255 45 85;
-    --color-accent-emphasis:     0 122 255;
-    --color-success-emphasis:    52 199 89;
-    --color-danger-emphasis:     255 59 48;
-    --color-purple-emphasis:     175 82 222;
-    --color-tool:                255 149 0;
-    --color-attention:           255 204 0;
-    --color-success-subtle:      218 251 225;
-    --color-danger-subtle:       255 235 233;
-    --color-warning-subtle:      255 248 197;
-    --color-accent-subtle:       221 244 255;
-    --color-purple-subtle:       251 239 255;
+    --color-background:          249 249 254;
+    --color-surface:             240 240 245;
+    --color-surface-hover:       226 226 232;
+    --color-surface-active:      208 208 216;
+    --color-border:              210 210 216;
+    --color-border-subtle:       226 226 232;
+    /* Near-black (#1c1c1e) — Apple iOS system label; avoids harsh pure-black-on-white */
+    --color-foreground:          28 28 30;
+    /* Secondary label — readable but clearly subordinate to foreground */
+    --color-muted:               99 108 118;
+    /* Tertiary label — for disabled states, placeholders, timestamps */
+    --color-muted-dim:           152 160 168;
+    --color-accent:              0 102 255;
+    --color-success:             36 174 75;
+    --color-warning:             215 125 0;
+    --color-danger:              220 48 38;
+    --color-purple:              149 58 196;
+    --color-accent-muted:        64 140 255;
+    --color-severe:              220 48 38;
+    --color-pink:                220 38 76;
+    --color-accent-emphasis:     0 102 255;
+    --color-success-emphasis:    36 174 75;
+    --color-danger-emphasis:     220 48 38;
+    --color-purple-emphasis:     149 58 196;
+    --color-tool:                215 125 0;
+    --color-attention:           215 125 0;
+    --color-success-subtle:      212 247 222;
+    --color-danger-subtle:       254 228 226;
+    --color-warning-subtle:      255 244 187;
+    --color-accent-subtle:       213 238 255;
+    --color-purple-subtle:       245 233 255;
     --color-muted-extra:         110 119 129;
     --color-success-emphasis-hover: 45 164 78;
     --color-accent-emphasis-hover:  0 102 214;
