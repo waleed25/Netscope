@@ -21,6 +21,7 @@
     "productName": "NetScope",
     "copyright": "Copyright 2024",
     "asar": true,
+    "compression": "store",
     "asarUnpack": [
       "backend/**/*",
       "frontend/dist/**/*",
