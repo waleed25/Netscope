@@ -11,7 +11,7 @@ from typing import Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from agent import analyzer
-from backend.config import settings
+from config import settings
 
 router = APIRouter()
 

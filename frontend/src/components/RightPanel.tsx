@@ -12,6 +12,7 @@ import {
 } from "../lib/api";
 import { MarkdownContent } from "./MarkdownContent";
 import { AnalysisStrip } from "./AnalysisStrip";
+import { TokenCounter } from "./TokenCounter";
 import { Zap, Microscope, MessageSquare, Send, Loader2, Paperclip } from "lucide-react";
 import type { DeepAnalysisReport } from "../store/useStore";
 
@@ -429,6 +430,11 @@ export function RightPanel() {
 
   return (
     <div className="flex flex-col w-full border-l border-border bg-background h-full overflow-hidden">
+      {/* Token counter bar */}
+      <div className="flex items-center justify-center px-2 py-1.5 border-b border-border shrink-0">
+        <TokenCounter />
+      </div>
+
       <div className="flex border-b border-border shrink-0">
         {tabs.map(({ id, icon: Icon, label }) => (
           <button
